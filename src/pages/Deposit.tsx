@@ -96,12 +96,25 @@ function StripePaymentForm({ amount, onSuccess, onCancel, selectedMethod }: any)
         </Button>
         <Button
           type="submit"
-          className="flex-1 bg-blue-600 hover:bg-blue-700"
+          className="flex-1 bg-blue-600 hover:bg-blue-700 font-bold"
           disabled={loading || !stripe}
         >
-          {loading ? 'Processing...' : `Pay $${amount.toLocaleString()}`}
+          {loading ? 'Processing...' : !stripe ? 'Initializing Stripe...' : `Pay $${(amount).toLocaleString()}`}
         </Button>
       </div>
+      {!stripe && (
+        <div className="mt-4 text-center">
+          <p className="text-[10px] text-amber-600">Connecting to Stripe secure server...</p>
+          <p className="text-[9px] text-gray-400 mt-1 italic">
+            Key: {import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY ? `${import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY.slice(0, 7)}...` : 'Missing (Check .env)'}
+          </p>
+          {!import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY && (
+            <p className="text-[10px] text-red-500 mt-1 font-bold">
+              ⚠️ Restart your dev server to apply the live keys from .env
+            </p>
+          )}
+        </div>
+      )}
     </form>
   );
 }
@@ -481,11 +494,11 @@ export default function Deposit() {
                         </p>
                       </div>
                       <Button
-                        className="w-full h-12 text-lg"
-                        disabled={!amount || parseFloat(amount) <= 0}
+                        className="w-full h-12 text-lg bg-blue-600 hover:bg-blue-700"
+                        disabled={!amount || isNaN(parseFloat(amount)) || parseFloat(amount) <= 0}
                         onClick={() => setShowStripe(true)}
                       >
-                        Proceed to Secure Payment
+                        {(!amount || isNaN(parseFloat(amount)) || parseFloat(amount) <= 0) ? 'Enter Amount' : 'Proceed to Secure Payment'}
                       </Button>
                     </div>
                   ) : (
@@ -569,17 +582,18 @@ export default function Deposit() {
                 </div>
               )}
 
-              <Button
-                className="w-full bg-blue-600 hover:bg-blue-700 h-12"
-                onClick={handleSubmit}
-                disabled={
-                  !amount ||
-                  Number(amount) <= 0 ||
-                  (selectedPaymentMethod?.type === "card" && !cardPaid)
-                }
-              >
-                Confirm Deposit
-              </Button>
+              {selectedPaymentMethod?.type !== "card" && (
+                <Button
+                  className="w-full bg-blue-600 hover:bg-blue-700 h-12"
+                  onClick={handleSubmit}
+                  disabled={
+                    !amount ||
+                    Number(amount) <= 0
+                  }
+                >
+                  Confirm Deposit
+                </Button>
+              )}
             </CardContent>
           </Card>
         </>
