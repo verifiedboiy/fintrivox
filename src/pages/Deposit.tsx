@@ -250,8 +250,14 @@ export default function Deposit() {
                 return (
                   <Card
                     key={method.id}
-                    className="cursor-pointer transition-all hover:border-blue-500 hover:shadow-lg"
-                    onClick={() => handleMethodSelect(method.id)}
+                    className={`cursor-pointer transition-all ${isBank ? 'opacity-60 grayscale' : 'hover:border-blue-500 hover:shadow-lg'}`}
+                    onClick={() => {
+                      if (isBank) {
+                        alert('Bank transfers are currently undergoing maintenance. Please use a crypto method for instant funding.');
+                        return;
+                      }
+                      handleMethodSelect(method.id);
+                    }}
                   >
                     <CardContent className="p-5">
                       <div className="flex items-start gap-4">
@@ -260,7 +266,7 @@ export default function Deposit() {
                         </div>
                         <div className="flex-1">
                           <div className="flex items-center justify-between mb-1">
-                            <h4 className="font-semibold">{method.name}</h4>
+                            <h4 className="font-semibold">{method.name} {isBank && <span className="text-xs text-red-500 font-normal ml-2">(Unavailable)</span>}</h4>
                             <ChevronRight className="w-5 h-5 text-gray-400" />
                           </div>
                           <p className="text-sm text-gray-500 mb-2">
