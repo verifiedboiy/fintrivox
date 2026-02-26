@@ -234,7 +234,7 @@ async function seed() {
             },
             {
                 name: 'Credit/Debit Card', type: 'card', icon: 'card',
-                minAmount: 10, maxAmount: 10000, fee: 2.5, feeType: 'percentage',
+                minAmount: 1, maxAmount: 10000, fee: 2.5, feeType: 'percentage',
                 processingTime: 'Instant', supportedCurrencies: ['USD', 'EUR', 'GBP'],
             },
         ],

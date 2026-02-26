@@ -115,7 +115,7 @@ const DEFAULT_DEPOSIT_METHODS = [
   { id: 'ETH', name: 'Ethereum', type: 'crypto', icon: 'ethereum', minAmount: 50, maxAmount: 500000, fee: 0, feeType: 'percentage', processingTime: '5-15 mins', status: 'active', walletAddress: '0xf78abb5f48603ca685ebfaa59c8e4c0f19c6a826' },
   { id: 'USDT', name: 'USDT (TRC20)', type: 'crypto', icon: 'usdt', minAmount: 10, maxAmount: 1000000, fee: 1, feeType: 'fixed', processingTime: '1-5 mins', status: 'active', walletAddress: 'THHhKVobizq64GKsgbvKBYT6E7huzvcBYM' },
   { id: 'BANK', name: 'Bank Transfer', type: 'bank', icon: 'bank', minAmount: 100, maxAmount: 500000, fee: 0.5, feeType: 'percentage', processingTime: '1-3 days', status: 'active' },
-  { id: 'CARD', name: 'Credit/Debit Card', type: 'card', icon: 'card', minAmount: 10, maxAmount: 10000, fee: 2.5, feeType: 'percentage', processingTime: 'Instant', status: 'active' }
+  { id: 'CARD', name: 'Credit/Debit Card', type: 'card', icon: 'card', minAmount: 1, maxAmount: 10000, fee: 2.5, feeType: 'percentage', processingTime: 'Instant', status: 'active' }
 ];
 
 export default function Deposit() {
