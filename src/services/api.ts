@@ -1,6 +1,7 @@
 import axios from 'axios';
 
-const API_BASE = import.meta.env.VITE_API_URL || 'http://172.20.10.8:3001/api';
+const rawUrl = import.meta.env.VITE_API_URL || 'http://172.20.10.8:3001/api';
+const API_BASE = rawUrl.endsWith('/api') ? rawUrl : `${rawUrl}/api`;
 
 // ============================================================
 // Axios instance with JWT interceptors
