@@ -22,7 +22,7 @@ async function seed() {
 
     const admin = await prisma.user.create({
         data: {
-            email: 'admin@Fintrivox.com',
+            email: 'admin@xvbwallet.com',
             passwordHash: adminHash,
             firstName: 'System',
             lastName: 'Administrator',
@@ -364,7 +364,7 @@ async function seed() {
 
     console.log('\n✨ Seed complete!\n');
     console.log('Login credentials:');
-    console.log('  Admin: admin@Fintrivox.com / Admin@123');
+    console.log('  Admin: admin@xvbwallet.com / Admin@123');
     console.log('  Demo:  john.doe@example.com / User@123');
     console.log('  User:  sarah.smith@example.com / User@123');
     console.log('  User:  emma.wilson@example.com / User@123\n');
