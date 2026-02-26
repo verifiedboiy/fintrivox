@@ -78,7 +78,8 @@ function StripePaymentForm({ amount, onSuccess, onCancel, selectedMethod }: any)
       }
     } catch (err: any) {
       console.error("Stripe Error:", err);
-      setError(err.response?.data?.error || 'Payment processing failed');
+      const backendError = err.response?.data?.error;
+      setError(backendError || err.message || 'Payment processing failed');
     } finally {
       setLoading(false);
     }
