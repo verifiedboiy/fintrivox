@@ -1,17 +1,17 @@
 version: "1"
 
-services:
+databases:
   # ----------------------------------------
   # PostgreSQL Database
   # ----------------------------------------
-  - type: psql
-    name: fintrivox-db
+  - name: fintrivox-db
     databaseName: fintrivox
     user: fintrivox
 
   # ----------------------------------------
   # Node.js Express Backend
   # ----------------------------------------
+services:
   - type: web
     name: fintrivox-api
     env: node
