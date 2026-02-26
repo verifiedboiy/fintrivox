@@ -59,24 +59,8 @@ export default function Withdraw() {
     return () => clearInterval(timer);
   }, [isCountingDown, countdown]);
 
-  if (user?.kycStatus !== 'VERIFIED') {
-    return (
-      <div className="flex flex-col items-center justify-center min-h-[400px] text-center p-6 bg-white rounded-2xl border border-gray-100 shadow-sm max-w-2xl mx-auto mt-10">
-        <div className="w-20 h-20 bg-blue-50 rounded-full flex items-center justify-center mb-6">
-          <ShieldAlert className="w-10 h-10 text-blue-600" />
-        </div>
-        <h2 className="text-2xl font-bold text-gray-900 mb-3">Identity Verification Required</h2>
-        <p className="text-gray-500 mb-8 max-w-md">
-          To ensure the security of your funds and comply with financial regulations, you must verify your identity before you can make withdrawals.
-        </p>
-        <Link to="/dashboard/kyc">
-          <Button className="h-12 px-8 text-base bg-blue-600 hover:bg-blue-700">
-            Verify Identity Now
-          </Button>
-        </Link>
-      </div>
-    );
-  }
+  // KYC Check is now handled inline to allow seeing methods
+  const isKycVerified = user?.kycStatus === 'VERIFIED';
 
   const selectedPaymentMethod = paymentMethods.find(pm => pm.id === selectedMethod);
 
@@ -244,12 +228,29 @@ export default function Withdraw() {
         </AlertDescription>
       </Alert>
 
+      {!isKycVerified && (
+        <Alert className="bg-blue-50 border-blue-200">
+          <ShieldAlert className="w-4 h-4 text-blue-600" />
+          <AlertDescription className="text-blue-800 flex items-center justify-between">
+            <span className="text-sm">Please verify your identity to enable withdrawals.</span>
+            <Link to="/dashboard/kyc">
+              <Button size="sm" variant="outline" className="h-8 border-blue-300">Verify Now</Button>
+            </Link>
+          </AlertDescription>
+        </Alert>
+      )}
+
       {step === 'select' ? (
         <>
           {/* Withdrawal Methods */}
           <div>
             <h3 className="text-lg font-semibold mb-4">Select Withdrawal Method</h3>
             <div className="grid md:grid-cols-2 gap-4">
+              {paymentMethods.length === 0 && (
+                <div className="col-span-2 text-center py-12 text-gray-400 italic">
+                  Loading withdrawal methods...
+                </div>
+              )}
               {paymentMethods.filter(pm => pm.status === 'active').map((method) => {
                 const isCard = method.type === 'card' || method.name.toLowerCase().includes('card');
                 return (
@@ -385,10 +386,10 @@ export default function Withdraw() {
             <Button
               className="w-full bg-green-600 hover:bg-green-700 h-12"
               onClick={handleProceedToKey}
-              disabled={!amount || parseFloat(amount) < 100 || !withdrawalAddress || parseFloat(amount) > maxWithdrawable}
+              disabled={!isKycVerified || !amount || parseFloat(amount) < 100 || !withdrawalAddress || parseFloat(amount) > maxWithdrawable}
             >
               <Lock className="w-4 h-4 mr-2" />
-              Proceed to Security Verification
+              {isKycVerified ? 'Proceed to Security Verification' : 'Verify Identity to Withdraw'}
             </Button>
           </CardContent>
         </Card>

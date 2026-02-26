@@ -232,6 +232,11 @@ export default function Deposit() {
           <div>
             <h3 className="text-lg font-semibold mb-4">Select Payment Method</h3>
             <div className="grid md:grid-cols-2 gap-4">
+              {paymentMethods.length === 0 && (
+                <div className="col-span-2 text-center py-12 text-gray-400 italic">
+                  Loading payment methods...
+                </div>
+              )}
               {paymentMethods.filter(pm => pm.status === 'active').map((method) => {
                 const isBank = method.name.toLowerCase().includes('bank') || method.name.toLowerCase().includes('wire');
                 return (
