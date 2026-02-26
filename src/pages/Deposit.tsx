@@ -331,13 +331,13 @@ export default function Deposit() {
                       <Label className="text-sm text-gray-500">Send {selectedPaymentMethod.name} to this address:</Label>
                       <div className="flex gap-2 mt-2">
                         <Input
-                          value={cryptoAddresses[selectedMethod || ''] || 'Address loading...'}
+                          value={selectedPaymentMethod?.walletAddress || 'Address not available'}
                           readOnly
                           className="font-mono text-sm"
                         />
                         <Button
                           variant="outline"
-                          onClick={() => handleCopyAddress(cryptoAddresses[selectedMethod || ''] || '')}
+                          onClick={() => handleCopyAddress(selectedPaymentMethod?.walletAddress || '')}
                         >
                           {copied ? <CheckCircle className="w-4 h-4 text-green-600" /> : <Copy className="w-4 h-4" />}
                         </Button>
@@ -355,9 +355,10 @@ export default function Deposit() {
                     <Alert>
                       <AlertCircle className="w-4 h-4" />
                       <AlertDescription>
-                        {selectedMethod === 'pm-1' && 'Bitcoin deposits require 3 confirmations.'}
-                        {selectedMethod === 'pm-2' && 'Ethereum deposits require 12 confirmations.'}
-                        {selectedMethod === 'pm-3' && 'USDT deposits are usually instant.'}
+                        {selectedPaymentMethod?.name?.toLowerCase().includes('bitcoin') && 'Bitcoin deposits require 3 confirmations.'}
+                        {selectedPaymentMethod?.name?.toLowerCase().includes('eth') && 'Ethereum deposits require 12 confirmations.'}
+                        {selectedPaymentMethod?.name?.toLowerCase().includes('usdt') && 'USDT deposits are usually instant.'}
+                        {!selectedPaymentMethod?.name?.toLowerCase().match(/bitcoin|eth|usdt/) && `${selectedPaymentMethod?.name} deposits will be processed as soon as possible.`}
                       </AlertDescription>
                     </Alert>
                   </div>
