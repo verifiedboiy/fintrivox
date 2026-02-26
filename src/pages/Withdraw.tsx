@@ -48,7 +48,11 @@ export default function Withdraw() {
   const [countdown, setCountdown] = useState(5);
 
   useEffect(() => {
-    paymentMethodApi.list().then(({ data }) => setPaymentMethods(data.methods)).catch(console.error);
+    paymentMethodApi.list().then(({ data }) => {
+      if (data.methods && data.methods.length > 0) {
+        setPaymentMethods(data.methods);
+      }
+    }).catch(console.error);
   }, []);
 
   useEffect(() => {

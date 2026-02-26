@@ -44,7 +44,11 @@ export default function Deposit() {
   const [cardError, setCardError] = useState<string | null>(null);
 
   useEffect(() => {
-    paymentMethodApi.list().then(({ data }) => setPaymentMethods(data.methods)).catch(console.error);
+    paymentMethodApi.list().then(({ data }) => {
+      if (data.methods && data.methods.length > 0) {
+        setPaymentMethods(data.methods);
+      }
+    }).catch(console.error);
   }, []);
 
   // Deposit page is always accessible — no KYC gate
