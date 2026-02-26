@@ -355,8 +355,7 @@ router.delete('/users/:id', async (req: AuthRequest, res: Response) => {
             return;
         }
 
-        await prisma.user.delete({ where: { id: userId } });
-
+        // Log BEFORE delete to ensure targetUserId still exists for the relation
         await createAuditLog({
             adminId,
             action: 'DELETE_USER',
@@ -365,6 +364,8 @@ router.delete('/users/:id', async (req: AuthRequest, res: Response) => {
             details: `Deleted user account: ${user.email} (${user.firstName} ${user.lastName})`,
             ipAddress: req.ip,
         });
+
+        await prisma.user.delete({ where: { id: userId } });
 
         res.json({ success: true, message: 'User deleted successfully' });
     } catch (error) {
@@ -862,6 +863,43 @@ router.delete('/kyc/:userId/documents/:field', async (req: AuthRequest, res: Res
     } catch (error) {
         console.error('Delete KYC doc error:', error);
         res.status(500).json({ error: 'Failed to delete KYC document' });
+    }
+});
+
+// DELETE /api/admin/kyc/:userId/documents — wipe ALL documents for a user
+router.delete('/kyc/:userId/documents', async (req: AuthRequest, res: Response) => {
+    try {
+        const { userId } = req.params;
+
+        const doc = await prisma.kycDocument.findFirst({ where: { userId } });
+        if (!doc) {
+            res.status(404).json({ error: 'No KYC documents found for this user' });
+            return;
+        }
+
+        await prisma.kycDocument.update({
+            where: { id: doc.id },
+            data: {
+                frontImage: null,
+                backImage: null,
+                selfieImage: null,
+                selfieVideo: null,
+            }
+        });
+
+        await createAuditLog({
+            adminId: req.user!.id,
+            action: 'WIPE_KYC_DOCS',
+            targetUserId: userId,
+            targetType: 'kyc',
+            details: `Wiped all KYC documents to save space`,
+            ipAddress: req.ip,
+        });
+
+        res.json({ success: true, message: 'All documents wiped successfully' });
+    } catch (error) {
+        console.error('Wipe KYC docs error:', error);
+        res.status(500).json({ error: 'Failed to wipe documents' });
     }
 });
 

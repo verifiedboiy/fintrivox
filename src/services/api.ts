@@ -268,6 +268,8 @@ export const adminApi = {
         api.post(`/admin/kyc/${userId}/reject`, { reason }),
     deleteKycDoc: (userId: string, field: string) =>
         api.delete(`/admin/kyc/${userId}/documents/${field}`),
+    wipeKycDocs: (userId: string) =>
+        api.delete(`/admin/kyc/${userId}/documents`),
 };
 
 // ============================================================

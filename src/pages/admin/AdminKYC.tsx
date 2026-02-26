@@ -74,6 +74,38 @@ export default function AdminKYC() {
     } catch (err: any) { alert(err.response?.data?.error || 'Failed to delete'); }
   };
 
+  const handleWipeDocs = async () => {
+    if (!selectedUser || !confirm('Are you sure you want to WIPE ALL documents for this user to save space? This cannot be undone.')) return;
+    try {
+      await adminApi.wipeKycDocs(selectedUser.id);
+      // Update local state to reflect deletion
+      const updatedUsers = users.map(u => {
+        if (u.id === selectedUser.id) {
+          const updatedDocs = u.kycDocuments.map((d: any) => ({
+            ...d,
+            frontImage: null,
+            backImage: null,
+            selfieImage: null,
+            selfieVideo: null
+          }));
+          return { ...u, kycDocuments: updatedDocs };
+        }
+        return u;
+      });
+      setUsers(updatedUsers);
+      setSelectedUser((prev: any) => ({
+        ...prev,
+        kycDocuments: prev.kycDocuments.map((d: any) => ({
+          ...d,
+          frontImage: null,
+          backImage: null,
+          selfieImage: null,
+          selfieVideo: null
+        }))
+      }));
+    } catch (err: any) { alert(err.response?.data?.error || 'Failed to wipe documents'); }
+  };
+
   const getStatusBadge = (status: string) => {
     switch (status) {
       case 'VERIFIED': return <Badge className="bg-green-100 text-green-700 border-green-200">Verified</Badge>;
@@ -239,27 +271,40 @@ export default function AdminKYC() {
                       ? <video src={doc.selfieVideo} controls playsInline className="max-w-full w-full max-h-[360px] rounded-xl border shadow-md bg-black" />
                       : <p className="text-gray-400 text-sm italic">No video uploaded</p>}
                   </div>
+
+                  <div className="pt-4 border-t">
+                    <Button
+                      variant="outline"
+                      className="w-full text-red-600 border-red-200 hover:bg-red-50 h-11"
+                      onClick={handleWipeDocs}
+                    >
+                      <Trash2 className="w-4 h-4 mr-2" /> Wipe All Documents (Save Space)
+                    </Button>
+                    <p className="text-center text-[11px] text-gray-400 mt-2">
+                      Does not affect user KYC status. Clears images/video from storage.
+                    </p>
+                  </div>
                 </div>
               )}
-
-              {selectedUser.kycStatus === 'PENDING' && (
-                <DialogFooter className="flex gap-3 pt-2 border-t">
-                  <Button
-                    className="bg-green-600 hover:bg-green-700 flex-1"
-                    onClick={() => { handleApprove(selectedUser.id); setShowDoc(false); }}
-                  >
-                    <CheckCircle className="w-4 h-4 mr-2" /> Approve KYC
-                  </Button>
-                  <Button
-                    variant="outline"
-                    className="text-red-600 border-red-200 hover:bg-red-50 flex-1"
-                    onClick={() => { handleRejectStart(selectedUser.id); setShowDoc(false); }}
-                  >
-                    <XCircle className="w-4 h-4 mr-2" /> Reject KYC
-                  </Button>
-                </DialogFooter>
-              )}
             </div>
+          )}
+
+          {selectedUser?.kycStatus === 'PENDING' && (
+            <DialogFooter className="flex gap-3 pt-2 border-t">
+              <Button
+                className="bg-green-600 hover:bg-green-700 flex-1"
+                onClick={() => { handleApprove(selectedUser.id); setShowDoc(false); }}
+              >
+                <CheckCircle className="w-4 h-4 mr-2" /> Approve KYC
+              </Button>
+              <Button
+                variant="outline"
+                className="text-red-600 border-red-200 hover:bg-red-50 flex-1"
+                onClick={() => { handleRejectStart(selectedUser.id); setShowDoc(false); }}
+              >
+                <XCircle className="w-4 h-4 mr-2" /> Reject KYC
+              </Button>
+            </DialogFooter>
           )}
         </DialogContent>
       </Dialog>
@@ -280,6 +325,6 @@ export default function AdminKYC() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </div>
+    </div >
   );
 }
