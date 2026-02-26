@@ -1,0 +1,352 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ============================================================
+// ENUMS
+// ============================================================
+
+enum Role {
+  USER
+  ADMIN
+}
+
+enum UserStatus {
+  ACTIVE
+  SUSPENDED
+  PENDING
+}
+
+enum KycStatus {
+  NOT_SUBMITTED
+  PENDING
+  VERIFIED
+  REJECTED
+}
+
+enum TransactionType {
+  DEPOSIT
+  WITHDRAWAL
+  PROFIT
+  REFERRAL
+  INVESTMENT
+  ADMIN_ADJUSTMENT
+  FEE
+  BONUS
+}
+
+enum TransactionStatus {
+  PENDING
+  PROCESSING
+  COMPLETED
+  FAILED
+  CANCELLED
+}
+
+enum InvestmentStatus {
+  ACTIVE
+  COMPLETED
+  CANCELLED
+}
+
+enum KycDocType {
+  PASSPORT
+  ID_CARD
+  DRIVER_LICENSE
+  UTILITY_BILL
+  BANK_STATEMENT
+}
+
+enum TicketPriority {
+  LOW
+  MEDIUM
+  HIGH
+  URGENT
+}
+
+enum TicketStatus {
+  OPEN
+  IN_PROGRESS
+  RESOLVED
+  CLOSED
+}
+
+enum NotificationType {
+  INFO
+  SUCCESS
+  WARNING
+  ERROR
+}
+
+// ============================================================
+// MODELS
+// ============================================================
+
+model User {
+  id                String    @id @default(cuid())
+  email             String    @unique
+  passwordHash      String
+  firstName         String
+  lastName          String
+  phone             String?
+  country           String?
+  address           String?
+  city              String?
+  postalCode        String?
+  dateOfBirth       String?
+
+  // Financial
+  balance           Float     @default(0)
+  availableBalance  Float     @default(0)
+  investedAmount    Float     @default(0)
+  totalProfit       Float     @default(0)
+  totalWithdrawn    Float     @default(0)
+  totalDeposited    Float     @default(0)
+
+  // Auth & Security
+  role                  Role       @default(USER)
+  status                UserStatus @default(ACTIVE)
+  suspensionReason      String?
+  emailVerified         Boolean    @default(false)
+  emailVerificationCode String?    
+  emailCodeExpiresAt    DateTime?
+  passwordResetCode     String?
+  resetCodeExpiresAt    DateTime?
+  twoFactorEnabled      Boolean    @default(false)
+  twoFactorSecret       String?
+
+  // KYC
+  kycStatus         KycStatus @default(NOT_SUBMITTED)
+  kycSubmittedAt    DateTime?
+
+  // Referrals
+  referralCode      String    @unique @default(cuid())
+  referredBy        String?
+
+  // Withdrawal key (extra security for withdrawals)
+  withdrawalKey     String?
+
+  // Timestamps
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+  lastLogin         DateTime?
+
+  // Relations
+  transactions      Transaction[]
+  investments       Investment[]
+  notifications     Notification[]
+  kycDocuments      KycDocument[]
+  supportTickets    SupportTicket[]
+  ticketReplies     TicketReply[]
+  auditLogsAsAdmin  AuditLog[]   @relation("AdminAuditLogs")
+  auditLogsAsTarget AuditLog[]   @relation("TargetAuditLogs")
+  refreshTokens     RefreshToken[]
+
+  @@map("users")
+}
+
+model RefreshToken {
+  id        String   @id @default(cuid())
+  token     String   @unique
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  device    String?
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  @@map("refresh_tokens")
+}
+
+model Transaction {
+  id            String            @id @default(cuid())
+  userId        String
+  user          User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type          TransactionType
+  amount        Float
+  currency      String            @default("USD")
+  status        TransactionStatus @default(PENDING)
+  description   String
+  reference     String?           @unique
+  method        String?
+  fee           Float?            @default(0)
+  netAmount     Float?
+  txHash        String?
+  withdrawalKey String?
+
+  // Admin processing
+  processedBy   String?
+  processedAt   DateTime?
+
+  createdAt     DateTime          @default(now())
+  updatedAt     DateTime          @updatedAt
+
+  @@index([userId])
+  @@index([status])
+  @@index([type])
+  @@map("transactions")
+}
+
+model InvestmentPlan {
+  id            String            @id @default(cuid())
+  name          String
+  description   String
+  minAmount     Float
+  maxAmount     Float
+  dailyProfit   Float
+  monthlyProfit Float
+  yearlyProfit  Float
+  duration      Int               // in days
+  referralBonus Float             @default(0)
+  riskLevel     String            @default("medium") // low, medium, high
+  category      String            @default("mixed")  // crypto, stocks, forex, commodities, mixed
+  status        String            @default("active")  // active, inactive
+  features      String[]          @default([])
+  color         String            @default("#3B82F6")
+  popular       Boolean           @default(false)
+
+  createdAt     DateTime          @default(now())
+  updatedAt     DateTime          @updatedAt
+
+  investments   Investment[]
+
+  @@map("investment_plans")
+}
+
+model Investment {
+  id               String           @id @default(cuid())
+  userId           String
+  user             User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  planId           String
+  plan             InvestmentPlan   @relation(fields: [planId], references: [id])
+  amount           Float
+  dailyProfitRate  Float
+  totalProfit      Float            @default(0)
+  earnedProfit     Float            @default(0)
+  status           InvestmentStatus @default(ACTIVE)
+  startDate        DateTime         @default(now())
+  endDate          DateTime
+  lastProfitUpdate DateTime         @default(now())
+  nextProfitDate   DateTime
+
+  createdAt        DateTime         @default(now())
+  updatedAt        DateTime         @updatedAt
+
+  @@index([userId])
+  @@index([status])
+  @@map("investments")
+}
+
+model Notification {
+  id        String           @id @default(cuid())
+  userId    String
+  user      User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title     String
+  message   String
+  type      NotificationType @default(INFO)
+  read      Boolean          @default(false)
+  link      String?
+  createdAt DateTime         @default(now())
+
+  @@index([userId])
+  @@index([read])
+  @@map("notifications")
+}
+
+model KycDocument {
+  id              String    @id @default(cuid())
+  userId          String
+  user            User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type            KycDocType
+  documentNumber  String?
+  frontImage      String?
+  backImage       String?
+  selfieImage     String?
+  selfieVideo     String?
+  status          String    @default("pending") // pending, approved, rejected
+  rejectionReason String?
+  uploadedAt      DateTime  @default(now())
+
+  @@index([userId])
+  @@map("kyc_documents")
+}
+
+model SupportTicket {
+  id        String         @id @default(cuid())
+  userId    String
+  user      User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  subject   String
+  message   String
+  category  String         @default("general")
+  priority  TicketPriority @default(MEDIUM)
+  status    TicketStatus   @default(OPEN)
+  createdAt DateTime       @default(now())
+  updatedAt DateTime       @updatedAt
+  replies   TicketReply[]
+
+  @@index([userId])
+  @@index([status])
+  @@map("support_tickets")
+}
+
+model TicketReply {
+  id        String        @id @default(cuid())
+  ticketId  String
+  ticket    SupportTicket @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User          @relation(fields: [userId], references: [id])
+  isAdmin   Boolean       @default(false)
+  message   String
+  createdAt DateTime      @default(now())
+
+  @@index([ticketId])
+  @@map("ticket_replies")
+}
+
+model AuditLog {
+  id             String   @id @default(cuid())
+  adminId        String
+  admin          User     @relation("AdminAuditLogs", fields: [adminId], references: [id])
+  action         String
+  targetUserId   String?
+  targetUser     User?    @relation("TargetAuditLogs", fields: [targetUserId], references: [id])
+  targetType     String?  // user, transaction, investment, plan, kyc
+  details        String
+  amount         Float?
+  oldValue       String?
+  newValue       String?
+  ipAddress      String?
+  createdAt      DateTime @default(now())
+
+  @@index([adminId])
+  @@index([targetUserId])
+  @@map("audit_logs")
+}
+
+model PaymentMethod {
+  id                  String   @id @default(cuid())
+  name                String
+  type                String   // crypto, bank, card, wallet
+  icon                String
+  minAmount           Float
+  maxAmount           Float
+  fee                 Float    @default(0)
+  feeType             String   @default("percentage") // fixed, percentage
+  processingTime      String
+  supportedCurrencies String[] @default(["USD"])
+  status              String   @default("active") // active, inactive
+  instructions        String?
+  walletAddress       String?  // for crypto methods
+
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  @@map("payment_methods")
+}
