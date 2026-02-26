@@ -19,7 +19,7 @@ const app = express();
 
 // --------------- Middleware ---------------
 app.use(cors({
-    origin: env.FRONTEND_URL,
+    origin: true, // Dynamically allow the requesting origin
     credentials: true,
 }));
 app.use(express.json({ limit: '150mb' }));
