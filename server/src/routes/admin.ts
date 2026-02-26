@@ -16,12 +16,17 @@ const qs = (val: unknown): string | undefined =>
 router.use(requireAuth as any);
 router.use(requireAdmin as any);
 
-// ============================================================
-// DASHBOARD STATS
-// ============================================================
+// Simple in-memory cache for stats
+let statsCache: { data: any, timestamp: number } | null = null;
+const CACHE_TTL = 60 * 1000; // 60 seconds
 
 router.get('/stats', async (_req: AuthRequest, res: Response) => {
     try {
+        // Check cache
+        if (statsCache && (Date.now() - statsCache.timestamp < CACHE_TTL)) {
+            return res.json({ stats: statsCache.data, fromCache: true });
+        }
+
         const [
             totalUsers, activeUsers, newUsersToday,
             totalDeposits, pendingDeposits,
@@ -41,19 +46,22 @@ router.get('/stats', async (_req: AuthRequest, res: Response) => {
             prisma.investment.aggregate({ _sum: { amount: true } }),
         ]);
 
-        res.json({
-            stats: {
-                totalUsers,
-                activeUsers,
-                newUsersToday,
-                totalDeposits: totalDeposits._sum.amount || 0,
-                pendingDeposits,
-                totalWithdrawals: totalWithdrawals._sum.amount || 0,
-                pendingWithdrawals,
-                activeInvestments,
-                totalInvestments: totalInvestments._sum.amount || 0,
-            },
-        });
+        const stats = {
+            totalUsers,
+            activeUsers,
+            newUsersToday,
+            totalDeposits: totalDeposits._sum.amount || 0,
+            pendingDeposits,
+            totalWithdrawals: totalWithdrawals._sum.amount || 0,
+            pendingWithdrawals,
+            activeInvestments,
+            totalInvestments: totalInvestments._sum.amount || 0,
+        };
+
+        // Update cache
+        statsCache = { data: stats, timestamp: Date.now() };
+
+        res.json({ stats });
     } catch (error) {
         console.error('Admin stats error:', error);
         res.status(500).json({ error: 'Failed to fetch stats' });
@@ -814,6 +822,46 @@ router.post('/kyc/:userId/reject', async (req: AuthRequest, res: Response) => {
         res.json({ success: true });
     } catch (error) {
         res.status(500).json({ error: 'Failed to reject KYC' });
+    }
+});
+
+// DELETE /api/admin/kyc/:userId/documents/:field — delete a specific KYC document field
+router.delete('/kyc/:userId/documents/:field', async (req: AuthRequest, res: Response) => {
+    try {
+        const { userId, field } = req.params;
+        const validFields = ['frontImage', 'backImage', 'selfieImage', 'selfieVideo'];
+
+        if (!validFields.includes(field)) {
+            res.status(400).json({ error: 'Invalid document field' });
+            return;
+        }
+
+        // Check if user exists
+        const user = await prisma.user.findUnique({ where: { id: userId } });
+        if (!user) {
+            res.status(404).json({ error: 'User not found' });
+            return;
+        }
+
+        // Update the document field to null
+        await prisma.kycDocument.updateMany({
+            where: { userId },
+            data: { [field]: null }
+        });
+
+        await createAuditLog({
+            adminId: req.user!.id,
+            action: 'DELETE_KYC_DOC',
+            targetUserId: userId,
+            targetType: 'kyc',
+            details: `Deleted KYC document field: ${field}`,
+            ipAddress: req.ip,
+        });
+
+        res.json({ success: true, message: `Field ${field} deleted successfully` });
+    } catch (error) {
+        console.error('Delete KYC doc error:', error);
+        res.status(500).json({ error: 'Failed to delete KYC document' });
     }
 });
 

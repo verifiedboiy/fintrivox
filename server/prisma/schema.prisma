@@ -301,7 +301,7 @@ model TicketReply {
   ticketId  String
   ticket    SupportTicket @relation(fields: [ticketId], references: [id], onDelete: Cascade)
   userId    String
-  user      User          @relation(fields: [userId], references: [id])
+  user      User          @relation(fields: [userId], references: [id], onDelete: Cascade)
   isAdmin   Boolean       @default(false)
   message   String
   createdAt DateTime      @default(now())
@@ -313,10 +313,10 @@ model TicketReply {
 model AuditLog {
   id             String   @id @default(cuid())
   adminId        String
-  admin          User     @relation("AdminAuditLogs", fields: [adminId], references: [id])
+  admin          User     @relation("AdminAuditLogs", fields: [adminId], references: [id], onDelete: Cascade)
   action         String
   targetUserId   String?
-  targetUser     User?    @relation("TargetAuditLogs", fields: [targetUserId], references: [id])
+  targetUser     User?    @relation("TargetAuditLogs", fields: [targetUserId], references: [id], onDelete: Cascade)
   targetType     String?  // user, transaction, investment, plan, kyc
   details        String
   amount         Float?

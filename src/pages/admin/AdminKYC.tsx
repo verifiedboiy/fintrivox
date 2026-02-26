@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { CheckCircle, XCircle, Eye, Loader2, FileText, RefreshCw, User } from 'lucide-react';
+import { CheckCircle, XCircle, Eye, Loader2, FileText, RefreshCw, User, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent } from '@/components/ui/card';
@@ -52,6 +52,26 @@ export default function AdminKYC() {
   const viewDocuments = (user: any) => {
     setSelectedUser(user);
     setShowDoc(true);
+  };
+
+  const handleDeleteDoc = async (field: string) => {
+    if (!selectedUser || !confirm(`Are you sure you want to delete this ${field.replace(/([A-Z])/g, ' $1').toLowerCase()}?`)) return;
+    try {
+      await adminApi.deleteKycDoc(selectedUser.id, field);
+      // Update local state to reflect deletion
+      const updatedUsers = users.map(u => {
+        if (u.id === selectedUser.id) {
+          const updatedDocs = u.kycDocuments.map((d: any) => ({ ...d, [field]: null }));
+          return { ...u, kycDocuments: updatedDocs };
+        }
+        return u;
+      });
+      setUsers(updatedUsers);
+      setSelectedUser((prev: any) => ({
+        ...prev,
+        kycDocuments: prev.kycDocuments.map((d: any) => ({ ...d, [field]: null }))
+      }));
+    } catch (err: any) { alert(err.response?.data?.error || 'Failed to delete'); }
   };
 
   const getStatusBadge = (status: string) => {
@@ -181,31 +201,43 @@ export default function AdminKYC() {
               ) : (
                 <div className="space-y-4">
                   <div>
-                    <p className="text-sm font-semibold text-gray-700 mb-2">Front of Document</p>
+                    <div className="flex justify-between items-center mb-2">
+                      <p className="text-sm font-semibold text-gray-700">Front of Document</p>
+                      {doc.frontImage && <Button variant="ghost" size="sm" className="text-red-500 hover:text-red-700 hover:bg-red-50 h-8 px-2" onClick={() => handleDeleteDoc('frontImage')}><Trash2 className="w-4 h-4 mr-1" /> Delete</Button>}
+                    </div>
                     {doc.frontImage
                       ? <img src={doc.frontImage} alt="Front" className="max-w-full rounded-xl border shadow-sm" />
-                      : <p className="text-gray-400 text-sm">Not uploaded</p>}
+                      : <p className="text-gray-400 text-sm italic">No image uploaded</p>}
                   </div>
 
                   <div>
-                    <p className="text-sm font-semibold text-gray-700 mb-2">Back of Document</p>
+                    <div className="flex justify-between items-center mb-2">
+                      <p className="text-sm font-semibold text-gray-700">Back of Document</p>
+                      {doc.backImage && <Button variant="ghost" size="sm" className="text-red-500 hover:text-red-700 hover:bg-red-50 h-8 px-2" onClick={() => handleDeleteDoc('backImage')}><Trash2 className="w-4 h-4 mr-1" /> Delete</Button>}
+                    </div>
                     {doc.backImage
                       ? <img src={doc.backImage} alt="Back" className="max-w-full rounded-xl border shadow-sm" />
-                      : <p className="text-gray-400 text-sm">Not uploaded</p>}
+                      : <p className="text-gray-400 text-sm italic">No image uploaded</p>}
                   </div>
 
                   <div>
-                    <p className="text-sm font-semibold text-gray-700 mb-2">Selfie Photo</p>
+                    <div className="flex justify-between items-center mb-2">
+                      <p className="text-sm font-semibold text-gray-700">Selfie Photo</p>
+                      {doc.selfieImage && <Button variant="ghost" size="sm" className="text-red-500 hover:text-red-700 hover:bg-red-50 h-8 px-2" onClick={() => handleDeleteDoc('selfieImage')}><Trash2 className="w-4 h-4 mr-1" /> Delete</Button>}
+                    </div>
                     {doc.selfieImage
                       ? <img src={doc.selfieImage} alt="Selfie" className="max-w-full rounded-xl border shadow-sm" />
-                      : <p className="text-gray-400 text-sm">Not uploaded</p>}
+                      : <p className="text-gray-400 text-sm italic">No image uploaded</p>}
                   </div>
 
                   <div>
-                    <p className="text-sm font-semibold text-gray-700 mb-2">Live Selfie Video (15s)</p>
+                    <div className="flex justify-between items-center mb-2">
+                      <p className="text-sm font-semibold text-gray-700">Live Selfie Video (15s)</p>
+                      {doc.selfieVideo && <Button variant="ghost" size="sm" className="text-red-500 hover:text-red-700 hover:bg-red-50 h-8 px-2" onClick={() => handleDeleteDoc('selfieVideo')}><Trash2 className="w-4 h-4 mr-1" /> Delete</Button>}
+                    </div>
                     {doc.selfieVideo
                       ? <video src={doc.selfieVideo} controls playsInline className="max-w-full w-full max-h-[360px] rounded-xl border shadow-md bg-black" />
-                      : <p className="text-gray-400 text-sm">Not uploaded</p>}
+                      : <p className="text-gray-400 text-sm italic">No video uploaded</p>}
                   </div>
                 </div>
               )}
