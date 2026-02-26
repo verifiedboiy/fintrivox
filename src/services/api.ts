@@ -163,9 +163,10 @@ export const transactionApi = {
 // ============================================================
 
 export const depositApi = {
-    create: (data: { amount: number; method: string; txHash?: string }) =>
+    create: (data: { amount: number; method: string; txHash?: string; stripePaymentIntentId?: string }) =>
         api.post('/deposits', data),
-
+    createPaymentIntent: (amount: number) =>
+        api.post('/deposits/payment-intent', { amount }),
     list: () => api.get('/deposits'),
 };
 

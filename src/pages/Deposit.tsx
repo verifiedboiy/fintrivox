@@ -20,6 +20,91 @@ import { Badge } from '@/components/ui/badge';
 
 import { useAuth } from '@/contexts/AuthContext';
 import { depositApi, paymentMethodApi } from '@/services/api';
+import { loadStripe } from '@stripe/stripe-js';
+import {
+  Elements,
+  PaymentElement,
+  useStripe,
+  useElements
+} from '@stripe/react-stripe-js';
+
+const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY || '');
+
+function StripePaymentForm({ amount, onSuccess, onCancel, selectedMethod }: any) {
+  const stripe = useStripe();
+  const elements = useElements();
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const handleSubmit = async (e: any) => {
+    e.preventDefault();
+    if (!stripe || !elements) return;
+
+    setLoading(true);
+    setError(null);
+
+    const { error: submitError } = await elements.submit();
+    if (submitError) {
+      setError(submitError.message || 'Validation failed');
+      setLoading(false);
+      return;
+    }
+
+    try {
+      // 1. Create payment intent on our backend
+      const { data } = await depositApi.createPaymentIntent(amount);
+      const { clientSecret, paymentIntentId } = data;
+
+      // 2. Confirm payment with Stripe
+      const { error: confirmError, paymentIntent } = await stripe.confirmPayment({
+        elements,
+        clientSecret,
+        redirect: 'if_required',
+      });
+
+      if (confirmError) {
+        setError(confirmError.message || 'Payment failed');
+      } else if (paymentIntent && paymentIntent.status === 'succeeded') {
+        // 3. Create deposit record in our DB
+        await depositApi.create({
+          amount,
+          method: selectedMethod?.name || 'Credit/Debit Card',
+          stripePaymentIntentId: paymentIntent.id
+        });
+        onSuccess();
+      }
+    } catch (err: any) {
+      setError(err.response?.data?.error || 'Payment processing failed');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <form onSubmit={handleSubmit} className="space-y-4">
+      <PaymentElement />
+      {error && <p className="text-sm text-red-500">{error}</p>}
+      <div className="flex gap-3">
+        <Button
+          type="button"
+          variant="outline"
+          className="flex-1"
+          onClick={onCancel}
+          disabled={loading}
+        >
+          Cancel
+        </Button>
+        <Button
+          type="submit"
+          className="flex-1 bg-blue-600 hover:bg-blue-700"
+          disabled={loading || !stripe}
+        >
+          {loading ? 'Processing...' : `Pay $${amount.toLocaleString()}`}
+        </Button>
+      </div>
+    </form>
+  );
+}
 
 const DEFAULT_DEPOSIT_METHODS = [
   { id: 'BTC', name: 'Bitcoin', type: 'crypto', icon: 'bitcoin', minAmount: 50, maxAmount: 1000000, fee: 0, feeType: 'percentage', processingTime: '10-30 mins', status: 'active', walletAddress: 'bc1q0x93ysaw9yf2gzsj6hfxa73yvcfmqftcqywrxs' },
@@ -38,12 +123,9 @@ export default function Deposit() {
   const [txHash, setTxHash] = useState('');
   const [paymentMethods, setPaymentMethods] = useState<any[]>(DEFAULT_DEPOSIT_METHODS);
 
-  const [cardNumber, setCardNumber] = useState("");
-  const [cardExpiry, setCardExpiry] = useState("");
-  const [cardCvv, setCardCvv] = useState("");
-  const [cardName, setCardName] = useState("");
   const [cardPaid, setCardPaid] = useState(false);
   const [cardError, setCardError] = useState<string | null>(null);
+  const [showStripe, setShowStripe] = useState(false);
 
   useEffect(() => {
     paymentMethodApi.list().then(({ data }) => {
@@ -69,55 +151,7 @@ export default function Deposit() {
 
   // Deposit page is always accessible — no KYC gate
 
-  const formatCardNumber = (v: string) =>
-    v.replace(/\D/g, "").slice(0, 16).replace(/(.{4})/g, "$1 ").trim();
-
-  const formatExpiry = (v: string) => {
-    const digits = v.replace(/\D/g, "").slice(0, 4);
-    if (digits.length <= 2) return digits;
-    return `${digits.slice(0, 2)}/${digits.slice(2)}`;
-  };
-
-  const validateCard = () => {
-    const num = cardNumber.replace(/\s/g, "");
-    const exp = cardExpiry;
-    const cvv = cardCvv;
-
-    if (cardName.trim().length < 2) return "Enter cardholder name.";
-    if (num.length !== 16) return "Card number must be 16 digits (demo).";
-    if (!/^\d{2}\/\d{2}$/.test(exp)) return "Expiry must be MM/YY.";
-    const [mmStr, yyStr] = exp.split("/");
-    const mm = Number(mmStr);
-    const yy = Number(yyStr);
-    if (mm < 1 || mm > 12) return "Invalid expiry month.";
-    // Simple expiry check (20YY)
-    const now = new Date();
-    const curYY = Number(String(now.getFullYear()).slice(-2));
-    const curMM = now.getMonth() + 1;
-    if (yy < curYY || (yy === curYY && mm < curMM)) return "Card is expired.";
-    if (!/^\d{3,4}$/.test(cvv)) return "CVV must be 3–4 digits.";
-    return null;
-  };
-
-  const handleCardPay = async () => {
-    const err = validateCard();
-    if (err) {
-      setCardError(err);
-      setCardPaid(false);
-      return;
-    }
-    setCardError(null);
-    try {
-      await depositApi.create({
-        amount: parseFloat(amount),
-        method: selectedPaymentMethod?.name || '',
-      });
-      setCardPaid(true);
-      setStep('confirm');
-    } catch (err: any) {
-      setCardError(err.response?.data?.error || 'Payment failed');
-    }
-  };
+  // Deposit page is always accessible — no KYC gate
 
   const selectedPaymentMethod = paymentMethods.find(pm => pm.id === selectedMethod);
 
@@ -146,6 +180,11 @@ export default function Deposit() {
     }
   };
 
+  const handleStripeSuccess = () => {
+    setCardPaid(true);
+    setStep('confirm');
+  };
+
   const getMethodIcon = (iconName: string) => {
     switch (iconName) {
       case 'bitcoin':
@@ -171,10 +210,6 @@ export default function Deposit() {
   useEffect(() => {
     setCardPaid(false);
     setCardError(null);
-    setCardNumber("");
-    setCardExpiry("");
-    setCardCvv("");
-    setCardName("");
   }, [selectedPaymentMethod?.id]);
 
   if (step === 'confirm') {
@@ -436,66 +471,41 @@ export default function Deposit() {
 
               {selectedPaymentMethod?.type === "card" && (
                 <div className="space-y-4">
-                  <div className="space-y-2">
-                    <Label>Cardholder Name</Label>
-                    <Input
-                      value={cardName}
-                      onChange={(e) => setCardName(e.target.value)}
-                      placeholder="Name on card"
-                      autoComplete="cc-name"
-                    />
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label>Card Number</Label>
-                    <Input
-                      value={cardNumber}
-                      onChange={(e) => setCardNumber(formatCardNumber(e.target.value))}
-                      placeholder="1234 5678 9012 3456"
-                      inputMode="numeric"
-                      autoComplete="cc-number"
-                    />
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label>Expiry</Label>
-                      <Input
-                        value={cardExpiry}
-                        onChange={(e) => setCardExpiry(formatExpiry(e.target.value))}
-                        placeholder="MM/YY"
-                        inputMode="numeric"
-                        autoComplete="cc-exp"
-                      />
+                  {!showStripe ? (
+                    <div className="space-y-4">
+                      <div className="p-4 bg-blue-50 rounded-lg border border-blue-100 flex gap-3">
+                        <Info className="w-5 h-5 text-blue-600 shrink-0" />
+                        <p className="text-sm text-blue-700">
+                          Secure card payments are processed via Stripe.
+                          Click the button below to initialize the secure payment form.
+                        </p>
+                      </div>
+                      <Button
+                        className="w-full h-12 text-lg"
+                        disabled={!amount || parseFloat(amount) <= 0}
+                        onClick={() => setShowStripe(true)}
+                      >
+                        Proceed to Secure Payment
+                      </Button>
                     </div>
-
-                    <div className="space-y-2">
-                      <Label>CVV</Label>
-                      <Input
-                        value={cardCvv}
-                        onChange={(e) => setCardCvv(e.target.value.replace(/\D/g, "").slice(0, 4))}
-                        placeholder="123"
-                        inputMode="numeric"
-                        autoComplete="cc-csc"
+                  ) : (
+                    <Elements stripe={stripePromise} options={{
+                      mode: 'payment',
+                      amount: Math.round(parseFloat(amount) * 100),
+                      currency: 'usd',
+                      appearance: { theme: 'stripe' }
+                    }}>
+                      <StripePaymentForm
+                        amount={parseFloat(amount)}
+                        selectedMethod={selectedPaymentMethod}
+                        onSuccess={handleStripeSuccess}
+                        onCancel={() => setShowStripe(false)}
                       />
-                    </div>
-                  </div>
-
-                  {cardError && (
-                    <p className="text-sm text-red-500">{cardError}</p>
+                    </Elements>
                   )}
 
-                  <Button
-                    type="button"
-                    onClick={handleCardPay}
-                    className="w-full"
-                    disabled={!amount || Number(amount) <= 0}
-                  >
-                    {cardPaid ? "Paid " : "Pay "}
-                  </Button>
-
-                  <p className="text-xs opacity-70">
-                    Demo only. Card payment will be connected to Stripe/Paystack later.
+                  <p className="text-[11px] text-center text-gray-400">
+                    Secure 256-bit encrypted checkout. Powered by Stripe.
                   </p>
                 </div>
               )}

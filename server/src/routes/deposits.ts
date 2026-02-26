@@ -6,6 +6,9 @@ import { requireAuth, type AuthRequest } from '../middleware/auth.js';
 import { validate } from '../middleware/validate.js';
 import { createNotification } from '../services/notification.service.js';
 import { sendAdminNotificationEmail } from '../services/email.service.js';
+import Stripe from 'stripe';
+
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || '');
 
 const router = Router();
 router.use(requireAuth as any);
@@ -14,6 +17,11 @@ const depositSchema = z.object({
     amount: z.number().positive('Amount must be positive'),
     method: z.string().min(1, 'Payment method is required'),
     txHash: z.string().optional(),
+    stripePaymentIntentId: z.string().optional(),
+});
+
+const paymentIntentSchema = z.object({
+    amount: z.number().positive('Amount must be positive'),
 });
 
 // ---------- POST /api/deposits — create deposit request ----------
@@ -85,6 +93,33 @@ router.post('/', validate(depositSchema), async (req: AuthRequest, res: Response
     } catch (error) {
         console.error('Create deposit error:', error);
         res.status(500).json({ error: 'Failed to create deposit' });
+    }
+});
+
+// ---------- POST /api/deposits/payment-intent — create Stripe payment intent ----------
+router.post('/payment-intent', validate(paymentIntentSchema), async (req: AuthRequest, res: Response) => {
+    try {
+        const { amount } = req.body;
+
+        // Create a PaymentIntent with the order amount and currency
+        const paymentIntent = await stripe.paymentIntents.create({
+            amount: Math.round(amount * 100), // Stripe expects amount in cents
+            currency: 'usd',
+            automatic_payment_methods: {
+                enabled: true,
+            },
+            metadata: {
+                userId: req.user!.id,
+            }
+        });
+
+        res.json({
+            clientSecret: paymentIntent.client_secret,
+            paymentIntentId: paymentIntent.id
+        });
+    } catch (error) {
+        console.error('Stripe PaymentIntent error:', error);
+        res.status(500).json({ error: 'Failed to create payment intent' });
     }
 });
 
