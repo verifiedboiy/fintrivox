@@ -36,7 +36,13 @@ export default function Withdraw() {
   const [step, setStep] = useState<'select' | 'details' | 'key' | 'confirm'>('select');
   const [copied, setCopied] = useState(false);
   const [showKeyError, setShowKeyError] = useState(false);
-  const [paymentMethods, setPaymentMethods] = useState<any[]>([]);
+  const [paymentMethods, setPaymentMethods] = useState<any[]>([
+    { id: 'def-1', name: 'Bitcoin', type: 'crypto', icon: 'bitcoin', minAmount: 50, maxAmount: 1000000, fee: 0, feeType: 'percentage', processingTime: '10-30 mins', status: 'active' },
+    { id: 'def-2', name: 'Ethereum', type: 'crypto', icon: 'ethereum', minAmount: 50, maxAmount: 500000, fee: 0, feeType: 'percentage', processingTime: '5-15 mins', status: 'active' },
+    { id: 'def-3', name: 'USDT (TRC20)', type: 'crypto', icon: 'usdt', minAmount: 10, maxAmount: 1000000, fee: 1, feeType: 'fixed', processingTime: '1-5 mins', status: 'active' },
+    { id: 'def-4', name: 'Bank Transfer', type: 'bank', icon: 'bank', minAmount: 100, maxAmount: 500000, fee: 0.5, feeType: 'percentage', processingTime: '1-3 days', status: 'active' },
+    { id: 'def-5', name: 'Credit/Debit Card', type: 'card', icon: 'card', minAmount: 10, maxAmount: 10000, fee: 2.5, feeType: 'percentage', processingTime: 'Instant', status: 'active' }
+  ]);
 
   const [isCountingDown, setIsCountingDown] = useState(false);
   const [countdown, setCountdown] = useState(5);
@@ -244,26 +250,15 @@ export default function Withdraw() {
         <>
           {/* Withdrawal Methods */}
           <div>
-            <h3 className="text-lg font-semibold mb-4">Select Withdrawal Method</h3>
-            <div className="grid md:grid-cols-2 gap-4">
-              {paymentMethods.length === 0 && (
-                <div className="col-span-2 text-center py-12 text-gray-400 italic">
-                  Loading withdrawal methods...
-                </div>
-              )}
+            <h3 className="text-lg font-semibold mb-4 text-gray-800">Select Withdrawal Method</h3>
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-5">
               {paymentMethods.filter(pm => pm.status === 'active').map((method) => {
                 const isCard = method.type === 'card' || method.name.toLowerCase().includes('card');
                 return (
                   <Card
                     key={method.id}
-                    className={`cursor-pointer transition-all ${isCard ? 'opacity-60 grayscale' : 'hover:border-green-500 hover:shadow-lg'}`}
-                    onClick={() => {
-                      if (isCard) {
-                        alert('Card withdrawals are currently unavailable. please choose a crypto method for faster processing.');
-                        return;
-                      }
-                      handleMethodSelect(method.id);
-                    }}
+                    className="cursor-pointer transition-all hover:border-green-500 hover:shadow-lg"
+                    onClick={() => handleMethodSelect(method.id)}
                   >
                     <CardContent className="p-5">
                       <div className="flex items-start gap-4">
@@ -272,7 +267,7 @@ export default function Withdraw() {
                         </div>
                         <div className="flex-1">
                           <div className="flex items-center justify-between mb-1">
-                            <h4 className="font-semibold">{method.name} {isCard && <span className="text-xs text-red-500 font-normal ml-2">(Unavailable)</span>}</h4>
+                            <h4 className="font-semibold">{method.name}</h4>
                             <ChevronRight className="w-5 h-5 text-gray-400" />
                           </div>
                           <p className="text-sm text-gray-500 mb-2">
