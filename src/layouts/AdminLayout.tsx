@@ -90,7 +90,7 @@ export default function AdminLayout() {
     { name: 'Support Tickets', href: '/admin/support', icon: MessageSquare },
     { name: 'System Logs', href: '/admin/logs', icon: FileText },
     { name: 'Settings', href: '/admin/settings', icon: Settings },
-  ];
+  ] as any[];
 
   const isActive = (path: string) => location.pathname === path;
 

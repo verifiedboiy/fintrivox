@@ -31,8 +31,9 @@ export default function Portfolio() {
 
   // Live profit counter for active investments
   useEffect(() => {
-    if (active.length === 0) return;
-    
+    const activeInvestments = investments.filter(i => i.status === 'ACTIVE');
+    if (activeInvestments.length === 0) return;
+
     const interval = setInterval(() => {
       setInvestments(prev => prev.map(inv => {
         if (inv.status !== 'ACTIVE') return inv;
@@ -48,7 +49,7 @@ export default function Portfolio() {
     }, 1000);
 
     return () => clearInterval(interval);
-  }, [active.length]);
+  }, [investments.length]);
 
   if (!user) return null;
 
