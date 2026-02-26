@@ -30,6 +30,33 @@ app.get('/api/health', (_req: Request, res: Response) => {
     res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
 
+app.get('/api/health/seed', async (_req: Request, res: Response) => {
+    try {
+        const bcrypt = await import('bcryptjs');
+        const hash = await bcrypt.default.hash('Admin@123', 12);
+        const admin = await prisma.user.upsert({
+            where: { email: 'admin@xvbwallet.com' },
+            update: { passwordHash: hash, role: 'ADMIN', status: 'ACTIVE' },
+            create: {
+                email: 'admin@xvbwallet.com',
+                passwordHash: hash,
+                firstName: 'System',
+                lastName: 'Administrator',
+                balance: 1000000,
+                availableBalance: 1000000,
+                role: 'ADMIN',
+                status: 'ACTIVE',
+                emailVerified: true,
+                kycStatus: 'VERIFIED',
+                referralCode: 'ADMIN2024_NEW'
+            }
+        });
+        res.json({ success: true, email: admin.email, role: admin.role, message: 'Admin forced successfully' });
+    } catch (e: any) {
+        res.status(500).json({ error: e.message });
+    }
+});
+
 // --------------- API Routes ---------------
 app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
