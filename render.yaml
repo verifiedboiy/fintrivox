@@ -16,7 +16,7 @@ services:
     name: fintrivox-api
     env: node
     rootDir: server
-    buildCommand: npm install --include=dev && npx prisma generate && npx prisma db push --schema=prisma/schema.prisma --accept-data-loss && npm run build
+    buildCommand: npm install --include=dev && npx prisma generate && npx prisma db push --schema=prisma/schema.prisma --accept-data-loss && npm run db:seed && npm run build
     startCommand: npm start
     envVars:
       - key: DATABASE_URL
