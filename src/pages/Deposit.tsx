@@ -238,13 +238,7 @@ export default function Deposit() {
                   <Card
                     key={method.id}
                     className={`cursor-pointer transition-all ${isBank ? 'opacity-60 grayscale' : 'hover:border-blue-500 hover:shadow-lg'}`}
-                    onClick={() => {
-                      if (isBank) {
-                        alert('Bank and Wire transfers are currently unavailable. please choose a crypto method for instant funding.');
-                        return;
-                      }
-                      handleMethodSelect(method.id);
-                    }}
+                    onClick={() => handleMethodSelect(method.id)}
                   >
                     <CardContent className="p-5">
                       <div className="flex items-start gap-4">
@@ -320,47 +314,90 @@ export default function Deposit() {
                 <p className="text-sm text-gray-500 mt-1">
                   Min: ${selectedPaymentMethod?.minAmount} | Max: ${selectedPaymentMethod?.maxAmount?.toLocaleString()}
                 </p>
+                <div className="flex items-center gap-4 mt-2 text-sm text-blue-600">
+                  <span className="flex items-center gap-1">
+                    <Clock className="w-4 h-4" />
+                    Processing: {selectedPaymentMethod?.processingTime}
+                  </span>
+                  <span className="flex items-center gap-1">
+                    <Badge variant="outline" className="border-blue-200">
+                      Fee: {selectedPaymentMethod?.feeType === 'percentage' ? `${selectedPaymentMethod.fee}%` : `$${selectedPaymentMethod?.fee}`}
+                    </Badge>
+                  </span>
+                </div>
               </div>
 
               {/* Crypto Payment Instructions */}
               {selectedPaymentMethod?.type === 'crypto' && (
-                <div className="bg-gray-50 rounded-lg p-6">
-                  <h4 className="font-semibold mb-4">Payment Instructions</h4>
-                  <div className="space-y-4">
-                    <div>
-                      <Label className="text-sm text-gray-500">Send {selectedPaymentMethod.name} to this address:</Label>
-                      <div className="flex gap-2 mt-2">
-                        <Input
-                          value={selectedPaymentMethod?.walletAddress || 'Address not available'}
-                          readOnly
-                          className="font-mono text-sm"
-                        />
-                        <Button
-                          variant="outline"
-                          onClick={() => handleCopyAddress(selectedPaymentMethod?.walletAddress || '')}
-                        >
-                          {copied ? <CheckCircle className="w-4 h-4 text-green-600" /> : <Copy className="w-4 h-4" />}
-                        </Button>
+                <div className="bg-gray-50 rounded-lg p-6 border border-gray-100">
+                  <div className="flex flex-col md:flex-row gap-6">
+                    <div className="flex-1 space-y-4">
+                      <h4 className="font-semibold text-lg">Payment Instructions</h4>
+                      <div>
+                        <Label className="text-sm text-gray-500">
+                          Send {selectedPaymentMethod.name} ({selectedPaymentMethod.supportedCurrencies?.join(', ') || ''})
+                        </Label>
+                        <div className="flex gap-2 mt-2">
+                          <Input
+                            value={selectedPaymentMethod?.walletAddress || (
+                              selectedPaymentMethod?.name?.toLowerCase().includes('bitcoin') ? 'bc1q0x93ysaw9yf2gzsj6hfxa73yvcfmqftcqywrxs' :
+                                selectedPaymentMethod?.name?.toLowerCase().includes('eth') ? '0xf78abb5f48603ca685ebfaa59c8e4c0f19c6a826' :
+                                  'THHhKVobizq64GKsgbvKBYT6E7huzvcBYM'
+                            )}
+                            readOnly
+                            className="font-mono text-sm bg-white"
+                          />
+                          <Button
+                            variant="outline"
+                            className="shrink-0"
+                            onClick={() => handleCopyAddress(selectedPaymentMethod?.walletAddress || (
+                              selectedPaymentMethod?.name?.toLowerCase().includes('bitcoin') ? 'bc1q0x93ysaw9yf2gzsj6hfxa73yvcfmqftcqywrxs' :
+                                selectedPaymentMethod?.name?.toLowerCase().includes('eth') ? '0xf78abb5f48603ca685ebfaa59c8e4c0f19c6a826' :
+                                  'THHhKVobizq64GKsgbvKBYT6E7huzvcBYM'
+                            ))}
+                          >
+                            {copied ? <CheckCircle className="w-4 h-4 text-green-600" /> : <Copy className="w-4 h-4" />}
+                          </Button>
+                        </div>
+                        <p className="text-[10px] text-gray-400 mt-1">
+                          Network: {selectedPaymentMethod?.name?.toLowerCase().includes('bitcoin') ? 'Bitcoin' :
+                            selectedPaymentMethod?.name?.toLowerCase().includes('eth') ? 'ERC20' : 'TRC20'}
+                        </p>
+                      </div>
+
+                      <div className="p-3 bg-amber-50 rounded-lg border border-amber-100">
+                        <div className="flex gap-2 text-amber-800 text-xs font-medium">
+                          <AlertCircle className="w-4 h-4 shrink-0" />
+                          <div>
+                            {selectedPaymentMethod?.name?.toLowerCase().includes('bitcoin') && 'Send only BTC to this address. 3 confirmations required.'}
+                            {selectedPaymentMethod?.name?.toLowerCase().includes('eth') && 'Send only ETH to this address. 12 confirmations required.'}
+                            {selectedPaymentMethod?.name?.toLowerCase().includes('usdt') && 'Send only USDT-TRC20 to this address. Instant processing.'}
+                          </div>
+                        </div>
                       </div>
                     </div>
-                    <div>
-                      <Label className="text-sm text-gray-500">Transaction Hash (after sending):</Label>
-                      <Input
-                        placeholder="Enter transaction hash..."
-                        value={txHash}
-                        onChange={(e) => setTxHash(e.target.value)}
-                        className="mt-2"
+
+                    <div className="w-full md:w-32 flex flex-col items-center justify-center p-4 bg-white rounded-xl border border-gray-100 shadow-sm">
+                      <img
+                        src={`https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=${selectedPaymentMethod?.walletAddress || 'address'}`}
+                        alt="QR Code"
+                        className="w-24 h-24 mb-2"
                       />
+                      <span className="text-[10px] font-bold text-gray-400 tracking-wider">SCAN TO PAY</span>
                     </div>
-                    <Alert>
-                      <AlertCircle className="w-4 h-4" />
-                      <AlertDescription>
-                        {selectedPaymentMethod?.name?.toLowerCase().includes('bitcoin') && 'Bitcoin deposits require 3 confirmations.'}
-                        {selectedPaymentMethod?.name?.toLowerCase().includes('eth') && 'Ethereum deposits require 12 confirmations.'}
-                        {selectedPaymentMethod?.name?.toLowerCase().includes('usdt') && 'USDT deposits are usually instant.'}
-                        {!selectedPaymentMethod?.name?.toLowerCase().match(/bitcoin|eth|usdt/) && `${selectedPaymentMethod?.name} deposits will be processed as soon as possible.`}
-                      </AlertDescription>
-                    </Alert>
+                  </div>
+
+                  <div className="mt-6 pt-6 border-t border-gray-100">
+                    <Label className="text-sm font-semibold mb-2 block">Upload Proof of Transaction</Label>
+                    <Input
+                      placeholder="Enter transaction ID / Hash..."
+                      value={txHash}
+                      onChange={(e) => setTxHash(e.target.value)}
+                      className="bg-white"
+                    />
+                    <p className="text-[11px] text-gray-400 mt-1 italic">
+                      Please enter your transaction hash to help us verify your deposit faster.
+                    </p>
                   </div>
                 </div>
               )}
