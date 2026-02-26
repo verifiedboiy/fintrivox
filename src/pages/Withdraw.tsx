@@ -26,6 +26,14 @@ import { Badge } from '@/components/ui/badge';
 import { useAuth } from '@/contexts/AuthContext';
 import { paymentMethodApi } from '@/services/api';
 
+const DEFAULT_WITHDRAW_METHODS = [
+  { id: 'BTC', name: 'Bitcoin', type: 'crypto', icon: 'bitcoin', minAmount: 50, maxAmount: 1000000, fee: 0, feeType: 'percentage', processingTime: '10-30 mins', status: 'active' },
+  { id: 'ETH', name: 'Ethereum', type: 'crypto', icon: 'ethereum', minAmount: 50, maxAmount: 500000, fee: 0, feeType: 'percentage', processingTime: '5-15 mins', status: 'active' },
+  { id: 'USDT', name: 'USDT (TRC20)', type: 'crypto', icon: 'usdt', minAmount: 10, maxAmount: 1000000, fee: 1, feeType: 'fixed', processingTime: '1-5 mins', status: 'active' },
+  { id: 'BANK', name: 'Bank Transfer', type: 'bank', icon: 'bank', minAmount: 100, maxAmount: 500000, fee: 0.5, feeType: 'percentage', processingTime: '1-3 days', status: 'active' },
+  { id: 'CARD', name: 'Credit/Debit Card', type: 'card', icon: 'card', minAmount: 10, maxAmount: 10000, fee: 2.5, feeType: 'percentage', processingTime: 'Instant', status: 'active' }
+];
+
 export default function Withdraw() {
   const { user } = useAuth();
   const [selectedMethod, setSelectedMethod] = useState<string | null>(null);
@@ -36,13 +44,7 @@ export default function Withdraw() {
   const [step, setStep] = useState<'select' | 'details' | 'key' | 'confirm'>('select');
   const [copied, setCopied] = useState(false);
   const [showKeyError, setShowKeyError] = useState(false);
-  const [paymentMethods, setPaymentMethods] = useState<any[]>([
-    { id: 'BTC', name: 'Bitcoin', type: 'crypto', icon: 'bitcoin', minAmount: 50, maxAmount: 1000000, fee: 0, feeType: 'percentage', processingTime: '10-30 mins', status: 'active' },
-    { id: 'ETH', name: 'Ethereum', type: 'crypto', icon: 'ethereum', minAmount: 50, maxAmount: 500000, fee: 0, feeType: 'percentage', processingTime: '5-15 mins', status: 'active' },
-    { id: 'USDT', name: 'USDT (TRC20)', type: 'crypto', icon: 'usdt', minAmount: 10, maxAmount: 1000000, fee: 1, feeType: 'fixed', processingTime: '1-5 mins', status: 'active' },
-    { id: 'BANK', name: 'Bank Transfer', type: 'bank', icon: 'bank', minAmount: 100, maxAmount: 500000, fee: 0.5, feeType: 'percentage', processingTime: '1-3 days', status: 'active' },
-    { id: 'CARD', name: 'Credit/Debit Card', type: 'card', icon: 'card', minAmount: 10, maxAmount: 10000, fee: 2.5, feeType: 'percentage', processingTime: 'Instant', status: 'active' }
-  ]);
+  const [paymentMethods, setPaymentMethods] = useState<any[]>(DEFAULT_WITHDRAW_METHODS);
 
   const [isCountingDown, setIsCountingDown] = useState(false);
   const [countdown, setCountdown] = useState(5);
@@ -50,8 +52,19 @@ export default function Withdraw() {
   useEffect(() => {
     paymentMethodApi.list().then(({ data }) => {
       if (data.methods && data.methods.length > 0) {
-        // Only override if we have actual live data
-        setPaymentMethods(data.methods);
+        // Merge strategy: keep fallbacks, update their data if DB returns matching names
+        setPaymentMethods(prev => {
+          const merged = [...prev];
+          data.methods.forEach((newMethod: any) => {
+            const index = merged.findIndex(m => m.name === newMethod.name || m.id === newMethod.id);
+            if (index !== -1) {
+              merged[index] = { ...merged[index], ...newMethod, status: 'active' };
+            } else {
+              merged.push({ ...newMethod, status: 'active' });
+            }
+          });
+          return merged;
+        });
       }
     }).catch(err => {
       console.error("Failed to load withdrawal methods, using fallbacks:", err);
@@ -259,7 +272,7 @@ export default function Withdraw() {
           <div>
             <h3 className="text-lg font-semibold mb-4 text-gray-800">Select Withdrawal Method</h3>
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-5">
-              {paymentMethods.filter(pm => pm.status?.toLowerCase() === 'active').map((method) => {
+              {paymentMethods.map((method) => {
                 const isCard = method.type === 'card' || method.name.toLowerCase().includes('card');
                 return (
                   <Card

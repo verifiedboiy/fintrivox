@@ -21,6 +21,14 @@ import { Badge } from '@/components/ui/badge';
 import { useAuth } from '@/contexts/AuthContext';
 import { depositApi, paymentMethodApi } from '@/services/api';
 
+const DEFAULT_DEPOSIT_METHODS = [
+  { id: 'BTC', name: 'Bitcoin', type: 'crypto', icon: 'bitcoin', minAmount: 50, maxAmount: 1000000, fee: 0, feeType: 'percentage', processingTime: '10-30 mins', status: 'active', walletAddress: 'bc1q0x93ysaw9yf2gzsj6hfxa73yvcfmqftcqywrxs' },
+  { id: 'ETH', name: 'Ethereum', type: 'crypto', icon: 'ethereum', minAmount: 50, maxAmount: 500000, fee: 0, feeType: 'percentage', processingTime: '5-15 mins', status: 'active', walletAddress: '0xf78abb5f48603ca685ebfaa59c8e4c0f19c6a826' },
+  { id: 'USDT', name: 'USDT (TRC20)', type: 'crypto', icon: 'usdt', minAmount: 10, maxAmount: 1000000, fee: 1, feeType: 'fixed', processingTime: '1-5 mins', status: 'active', walletAddress: 'THHhKVobizq64GKsgbvKBYT6E7huzvcBYM' },
+  { id: 'BANK', name: 'Bank Transfer', type: 'bank', icon: 'bank', minAmount: 100, maxAmount: 500000, fee: 0.5, feeType: 'percentage', processingTime: '1-3 days', status: 'active' },
+  { id: 'CARD', name: 'Credit/Debit Card', type: 'card', icon: 'card', minAmount: 10, maxAmount: 10000, fee: 2.5, feeType: 'percentage', processingTime: 'Instant', status: 'active' }
+];
+
 export default function Deposit() {
   const { user } = useAuth();
   const [selectedMethod, setSelectedMethod] = useState<string | null>(null);
@@ -28,13 +36,7 @@ export default function Deposit() {
   const [step, setStep] = useState<'select' | 'details' | 'confirm'>('select');
   const [copied, setCopied] = useState(false);
   const [txHash, setTxHash] = useState('');
-  const [paymentMethods, setPaymentMethods] = useState<any[]>([
-    { id: 'BTC', name: 'Bitcoin', type: 'crypto', icon: 'bitcoin', minAmount: 50, maxAmount: 1000000, fee: 0, feeType: 'percentage', processingTime: '10-30 mins', status: 'active', walletAddress: 'bc1q0x93ysaw9yf2gzsj6hfxa73yvcfmqftcqywrxs' },
-    { id: 'ETH', name: 'Ethereum', type: 'crypto', icon: 'ethereum', minAmount: 50, maxAmount: 500000, fee: 0, feeType: 'percentage', processingTime: '5-15 mins', status: 'active', walletAddress: '0xf78abb5f48603ca685ebfaa59c8e4c0f19c6a826' },
-    { id: 'USDT', name: 'USDT (TRC20)', type: 'crypto', icon: 'usdt', minAmount: 10, maxAmount: 1000000, fee: 1, feeType: 'fixed', processingTime: '1-5 mins', status: 'active', walletAddress: 'THHhKVobizq64GKsgbvKBYT6E7huzvcBYM' },
-    { id: 'BANK', name: 'Bank Transfer', type: 'bank', icon: 'bank', minAmount: 100, maxAmount: 500000, fee: 0.5, feeType: 'percentage', processingTime: '1-3 days', status: 'active' },
-    { id: 'CARD', name: 'Credit/Debit Card', type: 'card', icon: 'card', minAmount: 10, maxAmount: 10000, fee: 2.5, feeType: 'percentage', processingTime: 'Instant', status: 'active' }
-  ]);
+  const [paymentMethods, setPaymentMethods] = useState<any[]>(DEFAULT_DEPOSIT_METHODS);
 
   const [cardNumber, setCardNumber] = useState("");
   const [cardExpiry, setCardExpiry] = useState("");
@@ -46,8 +48,19 @@ export default function Deposit() {
   useEffect(() => {
     paymentMethodApi.list().then(({ data }) => {
       if (data.methods && data.methods.length > 0) {
-        // Only override if we have actual live data, and ensure IDs don't conflict
-        setPaymentMethods(data.methods);
+        // Merge strategy: keep fallbacks, but update their data if DB returns matching names
+        setPaymentMethods(prev => {
+          const merged = [...prev];
+          data.methods.forEach((newMethod: any) => {
+            const index = merged.findIndex(m => m.name === newMethod.name || m.id === newMethod.id);
+            if (index !== -1) {
+              merged[index] = { ...merged[index], ...newMethod, status: 'active' }; // Force active for visibility
+            } else {
+              merged.push({ ...newMethod, status: 'active' });
+            }
+          });
+          return merged;
+        });
       }
     }).catch(err => {
       console.error("Failed to load payment methods, using fallbacks:", err);
@@ -245,7 +258,7 @@ export default function Deposit() {
           <div>
             <h3 className="text-lg font-semibold mb-4 text-gray-800">Select Payment Method</h3>
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-5">
-              {paymentMethods.filter(pm => pm.status?.toLowerCase() === 'active').map((method) => {
+              {paymentMethods.map((method) => {
                 const isBank = method.name.toLowerCase().includes('bank') || method.name.toLowerCase().includes('wire');
                 return (
                   <Card
