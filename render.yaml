@@ -29,6 +29,14 @@ services:
         generateValue: true
       - key: NODE_ENV
         value: production
+      - key: SMTP_HOST
+        value: mail.privateemail.com
+      - key: SMTP_PORT
+        value: "465"
+      - key: SMTP_USER
+        value: verify@fintrivox.com
+      - key: SMTP_PASS
+        value: "Miracle1@"
       # We intentionally omit FRONTEND_URL to avoid circular dependency.
       # You should set FRONTEND_URL in the Render dashboard for fintrivox-api
       # after fintrivox-frontend is deployed to fix CORS.
