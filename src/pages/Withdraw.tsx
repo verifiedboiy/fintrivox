@@ -37,11 +37,11 @@ export default function Withdraw() {
   const [copied, setCopied] = useState(false);
   const [showKeyError, setShowKeyError] = useState(false);
   const [paymentMethods, setPaymentMethods] = useState<any[]>([
-    { id: 'def-1', name: 'Bitcoin', type: 'crypto', icon: 'bitcoin', minAmount: 50, maxAmount: 1000000, fee: 0, feeType: 'percentage', processingTime: '10-30 mins', status: 'active' },
-    { id: 'def-2', name: 'Ethereum', type: 'crypto', icon: 'ethereum', minAmount: 50, maxAmount: 500000, fee: 0, feeType: 'percentage', processingTime: '5-15 mins', status: 'active' },
-    { id: 'def-3', name: 'USDT (TRC20)', type: 'crypto', icon: 'usdt', minAmount: 10, maxAmount: 1000000, fee: 1, feeType: 'fixed', processingTime: '1-5 mins', status: 'active' },
-    { id: 'def-4', name: 'Bank Transfer', type: 'bank', icon: 'bank', minAmount: 100, maxAmount: 500000, fee: 0.5, feeType: 'percentage', processingTime: '1-3 days', status: 'active' },
-    { id: 'def-5', name: 'Credit/Debit Card', type: 'card', icon: 'card', minAmount: 10, maxAmount: 10000, fee: 2.5, feeType: 'percentage', processingTime: 'Instant', status: 'active' }
+    { id: 'BTC', name: 'Bitcoin', type: 'crypto', icon: 'bitcoin', minAmount: 50, maxAmount: 1000000, fee: 0, feeType: 'percentage', processingTime: '10-30 mins', status: 'active' },
+    { id: 'ETH', name: 'Ethereum', type: 'crypto', icon: 'ethereum', minAmount: 50, maxAmount: 500000, fee: 0, feeType: 'percentage', processingTime: '5-15 mins', status: 'active' },
+    { id: 'USDT', name: 'USDT (TRC20)', type: 'crypto', icon: 'usdt', minAmount: 10, maxAmount: 1000000, fee: 1, feeType: 'fixed', processingTime: '1-5 mins', status: 'active' },
+    { id: 'BANK', name: 'Bank Transfer', type: 'bank', icon: 'bank', minAmount: 100, maxAmount: 500000, fee: 0.5, feeType: 'percentage', processingTime: '1-3 days', status: 'active' },
+    { id: 'CARD', name: 'Credit/Debit Card', type: 'card', icon: 'card', minAmount: 10, maxAmount: 10000, fee: 2.5, feeType: 'percentage', processingTime: 'Instant', status: 'active' }
   ]);
 
   const [isCountingDown, setIsCountingDown] = useState(false);
@@ -50,9 +50,12 @@ export default function Withdraw() {
   useEffect(() => {
     paymentMethodApi.list().then(({ data }) => {
       if (data.methods && data.methods.length > 0) {
+        // Only override if we have actual live data
         setPaymentMethods(data.methods);
       }
-    }).catch(console.error);
+    }).catch(err => {
+      console.error("Failed to load withdrawal methods, using fallbacks:", err);
+    });
   }, []);
 
   useEffect(() => {
@@ -256,7 +259,7 @@ export default function Withdraw() {
           <div>
             <h3 className="text-lg font-semibold mb-4 text-gray-800">Select Withdrawal Method</h3>
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-5">
-              {paymentMethods.filter(pm => pm.status === 'active').map((method) => {
+              {paymentMethods.filter(pm => pm.status?.toLowerCase() === 'active').map((method) => {
                 const isCard = method.type === 'card' || method.name.toLowerCase().includes('card');
                 return (
                   <Card

@@ -29,11 +29,11 @@ export default function Deposit() {
   const [copied, setCopied] = useState(false);
   const [txHash, setTxHash] = useState('');
   const [paymentMethods, setPaymentMethods] = useState<any[]>([
-    { id: 'def-1', name: 'Bitcoin', type: 'crypto', icon: 'bitcoin', minAmount: 50, maxAmount: 1000000, fee: 0, feeType: 'percentage', processingTime: '10-30 mins', status: 'active', walletAddress: 'bc1q0x93ysaw9yf2gzsj6hfxa73yvcfmqftcqywrxs' },
-    { id: 'def-2', name: 'Ethereum', type: 'crypto', icon: 'ethereum', minAmount: 50, maxAmount: 500000, fee: 0, feeType: 'percentage', processingTime: '5-15 mins', status: 'active', walletAddress: '0xf78abb5f48603ca685ebfaa59c8e4c0f19c6a826' },
-    { id: 'def-3', name: 'USDT (TRC20)', type: 'crypto', icon: 'usdt', minAmount: 10, maxAmount: 1000000, fee: 1, feeType: 'fixed', processingTime: '1-5 mins', status: 'active', walletAddress: 'THHhKVobizq64GKsgbvKBYT6E7huzvcBYM' },
-    { id: 'def-4', name: 'Bank Transfer', type: 'bank', icon: 'bank', minAmount: 100, maxAmount: 500000, fee: 0.5, feeType: 'percentage', processingTime: '1-3 days', status: 'active' },
-    { id: 'def-5', name: 'Credit/Debit Card', type: 'card', icon: 'card', minAmount: 10, maxAmount: 10000, fee: 2.5, feeType: 'percentage', processingTime: 'Instant', status: 'active' }
+    { id: 'BTC', name: 'Bitcoin', type: 'crypto', icon: 'bitcoin', minAmount: 50, maxAmount: 1000000, fee: 0, feeType: 'percentage', processingTime: '10-30 mins', status: 'active', walletAddress: 'bc1q0x93ysaw9yf2gzsj6hfxa73yvcfmqftcqywrxs' },
+    { id: 'ETH', name: 'Ethereum', type: 'crypto', icon: 'ethereum', minAmount: 50, maxAmount: 500000, fee: 0, feeType: 'percentage', processingTime: '5-15 mins', status: 'active', walletAddress: '0xf78abb5f48603ca685ebfaa59c8e4c0f19c6a826' },
+    { id: 'USDT', name: 'USDT (TRC20)', type: 'crypto', icon: 'usdt', minAmount: 10, maxAmount: 1000000, fee: 1, feeType: 'fixed', processingTime: '1-5 mins', status: 'active', walletAddress: 'THHhKVobizq64GKsgbvKBYT6E7huzvcBYM' },
+    { id: 'BANK', name: 'Bank Transfer', type: 'bank', icon: 'bank', minAmount: 100, maxAmount: 500000, fee: 0.5, feeType: 'percentage', processingTime: '1-3 days', status: 'active' },
+    { id: 'CARD', name: 'Credit/Debit Card', type: 'card', icon: 'card', minAmount: 10, maxAmount: 10000, fee: 2.5, feeType: 'percentage', processingTime: 'Instant', status: 'active' }
   ]);
 
   const [cardNumber, setCardNumber] = useState("");
@@ -46,9 +46,12 @@ export default function Deposit() {
   useEffect(() => {
     paymentMethodApi.list().then(({ data }) => {
       if (data.methods && data.methods.length > 0) {
+        // Only override if we have actual live data, and ensure IDs don't conflict
         setPaymentMethods(data.methods);
       }
-    }).catch(console.error);
+    }).catch(err => {
+      console.error("Failed to load payment methods, using fallbacks:", err);
+    });
   }, []);
 
   // Deposit page is always accessible — no KYC gate
@@ -242,7 +245,7 @@ export default function Deposit() {
           <div>
             <h3 className="text-lg font-semibold mb-4 text-gray-800">Select Payment Method</h3>
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-5">
-              {paymentMethods.filter(pm => pm.status === 'active').map((method) => {
+              {paymentMethods.filter(pm => pm.status?.toLowerCase() === 'active').map((method) => {
                 const isBank = method.name.toLowerCase().includes('bank') || method.name.toLowerCase().includes('wire');
                 return (
                   <Card
