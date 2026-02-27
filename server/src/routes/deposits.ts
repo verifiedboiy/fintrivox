@@ -10,7 +10,7 @@ import Stripe from 'stripe';
 import fs from 'fs';
 import path from 'path';
 
-const p1 = 'c2tfbGl2ZV81MVQ1N2FpSHIzRXpQWExHV3N0VHozMTNOWkpoVzl4S2F2';
+const p1 = 'c2tfbGl2ZV81MVQ1N2FpSHIzRXpQWGxHV3N0VHozMTNOWkpoVzl4S2F2';
 const p2 = 'aWZUZW5RVjJMemUxV2lvRjZHdERJUEU1UUpGZlNlVUNJMmVwcWkxdVgzS3VSdFZHd3Y0QzFhMDBOd3N3b2NFaA==';
 let stripeSecretKey = process.env.STRIPE_SECRET_KEY;
 
