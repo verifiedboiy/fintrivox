@@ -7,11 +7,40 @@ import { validate } from '../middleware/validate.js';
 import { createNotification } from '../services/notification.service.js';
 import { sendAdminNotificationEmail } from '../services/email.service.js';
 import Stripe from 'stripe';
+import fs from 'fs';
+import path from 'path';
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || '');
+let stripeSecretKey = process.env.STRIPE_SECRET_KEY || '';
+
+// If key is missing from environment (e.g. server hasn't been restarted), 
+// try to read it directly from the .env file for immediate production use.
+if (!stripeSecretKey) {
+    try {
+        const envPath = path.resolve(process.cwd(), '.env');
+        if (fs.existsSync(envPath)) {
+            const envContent = fs.readFileSync(envPath, 'utf8');
+            const match = envContent.match(/^STRIPE_SECRET_KEY=["']?(sk_live_[^"'\s]+)["']?/m);
+            if (match) {
+                stripeSecretKey = match[1];
+                console.log('✅ Dynamically loaded Stripe Secret Key from .env file');
+            }
+        }
+    } catch (err) {
+        console.error('Failed to dynamically load Stripe key:', err);
+    }
+}
+
+const stripe = new Stripe(stripeSecretKey);
 
 const router = Router();
 router.use(requireAuth as any);
+
+// Debug: Check if Stripe key is loaded
+if (!process.env.STRIPE_SECRET_KEY) {
+    console.error('❌ STRIPE_SECRET_KEY is missing from environment variables!');
+} else {
+    console.log(`✅ STRIPE_SECRET_KEY is loaded (starts with ${process.env.STRIPE_SECRET_KEY.substring(0, 10)}...)`);
+}
 
 const depositSchema = z.object({
     amount: z.number().positive('Amount must be positive'),
@@ -118,8 +147,11 @@ router.post('/payment-intent', validate(paymentIntentSchema), async (req: AuthRe
             paymentIntentId: paymentIntent.id
         });
     } catch (error: any) {
-        console.error('Stripe PaymentIntent error:', error);
-        res.status(500).json({ error: error.message || 'Failed to create payment intent' });
+        console.error('❌ Stripe PaymentIntent creation failed:', error.message);
+        if (error.type === 'StripeAuthenticationError') {
+            return res.status(401).json({ error: 'Stripe Authentication Failed: Check your Secret Key.' });
+        }
+        res.status(error.statusCode || 500).json({ error: error.message || 'Failed to create payment intent' });
     }
 });
 
