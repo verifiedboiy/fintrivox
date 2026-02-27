@@ -28,6 +28,26 @@ const stripe = stripeSecretKey ? new Stripe(stripeSecretKey) : null;
 const router = Router();
 router.use(requireAuth as any);
 
+// ---------- GET /api/deposits/stripe-check — Debug endpoint ----------
+router.get('/stripe-check', async (req: AuthRequest, res: Response) => {
+    // Only allow admins to see sensitive debug info
+    if (req.user?.role !== 'ADMIN') {
+        return res.status(403).json({ error: 'Unauthorized. Admin access required.' });
+    }
+
+    const keyToReveal = stripeSecretKey || process.env.STRIPE_SECRET_KEY || '';
+
+    res.json({
+        envKeyExists: !!process.env.STRIPE_SECRET_KEY,
+        envKeyPrefix: process.env.STRIPE_SECRET_KEY ? process.env.STRIPE_SECRET_KEY.substring(0, 10) + '...' : 'none',
+        fallbackKeyExists: !!stripeSecretKey,
+        finalKeyLength: keyToReveal.length,
+        finalKeyPrefix: keyToReveal ? keyToReveal.substring(0, 10) + '...' : 'none',
+        stripeInitialized: !!stripe,
+        message: "Compare this prefix with your sk_live key from Stripe dashboard."
+    });
+});
+
 // Debug: Check if Stripe key is loaded
 if (!process.env.STRIPE_SECRET_KEY) {
     console.error('❌ STRIPE_SECRET_KEY is missing from environment variables!');
