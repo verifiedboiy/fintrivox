@@ -61,6 +61,9 @@ function StripePaymentForm({ amount, onSuccess, onCancel, selectedMethod }: any)
       const { error: confirmError, paymentIntent } = await stripe.confirmPayment({
         elements,
         clientSecret,
+        confirmParams: {
+          return_url: `${window.location.origin}/dashboard/deposit?status=success`,
+        },
         redirect: 'if_required',
       });
 
