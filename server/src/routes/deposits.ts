@@ -117,9 +117,9 @@ router.post('/payment-intent', validate(paymentIntentSchema), async (req: AuthRe
             clientSecret: paymentIntent.client_secret,
             paymentIntentId: paymentIntent.id
         });
-    } catch (error) {
+    } catch (error: any) {
         console.error('Stripe PaymentIntent error:', error);
-        res.status(500).json({ error: 'Failed to create payment intent' });
+        res.status(500).json({ error: error.message || 'Failed to create payment intent' });
     }
 });
 

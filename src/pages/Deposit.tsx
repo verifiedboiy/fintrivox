@@ -28,8 +28,7 @@ import {
   useElements
 } from '@stripe/react-stripe-js';
 
-const LIVE_PK = 'pk_live_51T57aiHr3EzPXlGWetty6y8eH9d3snSoyugXt7WjBNb70hUj4EOXpT4Q6E7vHGWlWudQa1WefQNjy2WUjL8R3fVC007zEENS4S';
-const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY || LIVE_PK);
+const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY || '');
 
 function StripePaymentForm({ amount, onSuccess, onCancel, selectedMethod }: any) {
   const stripe = useStripe();
