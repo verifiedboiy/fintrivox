@@ -22,21 +22,36 @@ if (!stripeSecretKey) {
     }
 }
 
+// CRITICAL: Force remove any potential hidden whitespace or newlines
+stripeSecretKey = stripeSecretKey.replace(/\s/g, '').trim();
+
 // Ensure server doesn't crash if the key is empty
-const stripe = stripeSecretKey ? new Stripe(stripeSecretKey) : null;
+const stripe = stripeSecretKey.startsWith('sk_live_') ? new Stripe(stripeSecretKey) : null;
 
 const router = Router();
 
 // ---------- GET /api/deposits/stripe-check — Debug endpoint (Public) ----------
 router.get('/stripe-check', async (_req, res) => {
-    const keyToReveal = stripeSecretKey || process.env.STRIPE_SECRET_KEY || '';
+    const keyToReveal = stripeSecretKey || '';
+
+    // Create detailed masked preview: every 20 chars show first 4 and last 4
+    const chunks = [];
+    for (let i = 0; i < keyToReveal.length; i += 20) {
+        const segment = keyToReveal.substring(i, i + 20);
+        if (segment.length > 8) {
+            chunks.push(segment.substring(0, 4) + '...' + segment.substring(segment.length - 4));
+        } else {
+            chunks.push(segment);
+        }
+    }
+
     res.json({
-        envKeyExists: !!process.env.STRIPE_SECRET_KEY,
-        fallbackKeyExists: !!stripeSecretKey,
-        finalKeyLength: keyToReveal.length,
-        finalKeyPrefix: keyToReveal ? keyToReveal.substring(0, 10) + '...' : 'none',
         stripeInitialized: !!stripe,
-        message: "If stripeInitialized is true and length is 106, your live payments are ready."
+        finalKeyLength: keyToReveal.length,
+        maskedKeySegments: chunks,
+        keyStartsWithSkLive: keyToReveal.startsWith('sk_live_'),
+        envKeyExists: !!process.env.STRIPE_SECRET_KEY,
+        message: "Verify the segments against your Stripe key. No spaces allowed."
     });
 });
 
