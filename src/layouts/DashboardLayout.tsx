@@ -243,7 +243,7 @@ export default function DashboardLayout() {
               <div className="text-sm">
                 <span className="text-gray-500">Balance:</span>
                 <span className="font-semibold text-gray-900 ml-1">
-                  ${user?.balance.toLocaleString()}
+                  ${(user?.balance || 0).toLocaleString()}
                 </span>
               </div>
             </div>
@@ -351,7 +351,7 @@ export default function DashboardLayout() {
                   </p>
                   <p className="text-sm text-gray-500">{user?.email}</p>
                   <p className="text-sm font-medium text-blue-600 mt-1">
-                    ${user?.balance.toLocaleString()}
+                    ${(user?.balance || 0).toLocaleString()}
                   </p>
                 </div>
               </div>

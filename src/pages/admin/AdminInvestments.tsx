@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Search, TrendingUp, Loader2, MoreHorizontal } from 'lucide-react';
+import { Search, TrendingUp, Loader2, MoreHorizontal, RotateCcw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent } from '@/components/ui/card';
@@ -45,6 +45,40 @@ export default function AdminInvestments() {
     fetchData();
   }, []);
 
+  const handleRestoreDefaults = async () => {
+    if (!confirm('This will restore the Starter, Growth, and Elite plans to their default values. Existing plans with these names will be updated. Continue?')) return;
+
+    setLoading(true);
+    try {
+      await adminApi.restorePlans();
+      // Refetch both plans and stats/investments
+      const [plansRes, usersRes] = await Promise.all([
+        adminApi.getPlans(),
+        adminApi.getUsers({ limit: 100 })
+      ]);
+      setPlans(plansRes.data.plans);
+
+      const allInvestments: any[] = [];
+      for (const u of usersRes.data.users) {
+        const userRes = await adminApi.getUser(u.id).catch(() => null);
+        if (userRes?.data.user?.investments) {
+          userRes.data.user.investments.forEach((inv: any) => {
+            allInvestments.push({ ...inv, userName: `${u.firstName} ${u.lastName}` });
+          });
+        }
+      }
+      setInvestments(allInvestments);
+
+      const { toast } = await import('sonner');
+      toast.success('Default plans restored successfully');
+    } catch (err: any) {
+      console.error('Failed to restore plans:', err);
+      alert(err.response?.data?.error || 'Failed to restore plans');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const filteredPlans = plans.filter(p => p.name.toLowerCase().includes(searchQuery.toLowerCase()));
   const filteredInvestments = investments.filter(inv =>
     inv.userName?.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -64,7 +98,20 @@ export default function AdminInvestments() {
 
   return (
     <div className="space-y-6">
-      <div><h1 className="text-2xl font-bold text-gray-900">Investment Management</h1><p className="text-gray-500">Manage plans and user investments</p></div>
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900">Investment Management</h1>
+          <p className="text-gray-500">Manage plans and user investments</p>
+        </div>
+        <Button
+          variant="outline"
+          onClick={handleRestoreDefaults}
+          className="border-blue-200 text-blue-600 hover:bg-blue-50 self-start sm:self-auto"
+        >
+          <RotateCcw className="w-4 h-4 mr-2" />
+          Restore Default Plans
+        </Button>
+      </div>
 
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <Card><CardContent className="p-4"><p className="text-sm text-gray-500">Total Plans</p><p className="text-2xl font-bold">{plans.length}</p></CardContent></Card>

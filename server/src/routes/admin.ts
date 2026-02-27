@@ -3,7 +3,7 @@ import { Router, Response } from 'express';
 import prisma from '../config/db.js';
 import { requireAuth, requireAdmin, type AuthRequest } from '../middleware/auth.js';
 import { createAuditLog } from '../utils/audit.js';
-import { createNotification } from '../services/notification.service.js';
+import { createNotification, createBroadcastNotification } from '../services/notification.service.js';
 import { sendKYCStatusEmail } from '../services/email.service.js';
 
 const router = Router();
@@ -586,7 +586,30 @@ router.get('/plans', async (_req: AuthRequest, res: Response) => {
 
 router.post('/plans', async (req: AuthRequest, res: Response) => {
     try {
-        const plan = await prisma.investmentPlan.create({ data: req.body });
+        const { dailyProfitRate, name, minAmount, duration, category, ...rest } = req.body;
+
+        if (!name || dailyProfitRate === undefined || minAmount === undefined || duration === undefined) {
+            return res.status(400).json({ error: 'Missing required fields: name, dailyProfitRate, minAmount, or duration' });
+        }
+
+        // Map dailyProfitRate from frontend to dailyProfit in DB
+        const dailyProfit = parseFloat(dailyProfitRate);
+        const monthlyProfit = dailyProfit * 30;
+        const yearlyProfit = dailyProfit * 365;
+
+        const planData = {
+            ...rest,
+            name,
+            minAmount: parseFloat(minAmount),
+            duration: parseInt(duration),
+            dailyProfit,
+            monthlyProfit,
+            yearlyProfit,
+            category: category || 'mixed',
+            status: req.body.status || 'active'
+        };
+
+        const plan = await prisma.investmentPlan.create({ data: planData });
 
         await createAuditLog({
             adminId: req.user!.id,
@@ -596,17 +619,118 @@ router.post('/plans', async (req: AuthRequest, res: Response) => {
             ipAddress: req.ip,
         });
 
+        // Broadcast notification to all users
+        try {
+            await createBroadcastNotification({
+                title: '🎁 New Investment Plan Available!',
+                message: `The "${plan.name}" plan has been launched with ${plan.dailyProfit}% daily profit. Invest now!`,
+                type: 'SUCCESS',
+                link: '/dashboard/invest'
+            });
+        } catch (notifError) {
+            console.error('Failed to send broadcast notification:', notifError);
+            // Don't fail the whole request if notification fails
+        }
+
         res.status(201).json({ plan });
+    } catch (error: any) {
+        console.error('Create plan error:', error);
+        if (error.code === 'P2002') {
+            return res.status(400).json({ error: 'A plan with this name already exists.' });
+        }
+        res.status(500).json({ error: 'Failed to create plan. Please check all fields.' });
+    }
+});
+
+router.post('/plans/restore-defaults', async (req: AuthRequest, res: Response) => {
+    try {
+        const defaultPlans = [
+            {
+                name: 'Starter',
+                description: 'Perfect for beginners starting their investment journey.',
+                minAmount: 100,
+                maxAmount: 999,
+                dailyProfit: 0.5,
+                monthlyProfit: 15,
+                yearlyProfit: 180,
+                duration: 28,
+                riskLevel: 'low',
+                category: 'mixed',
+                status: 'active',
+                color: '#10B981',
+                features: ['Daily Profit', 'Capital Protection', 'Instant Withdrawal']
+            },
+            {
+                name: 'Growth',
+                description: 'Accelerate your wealth with higher returns and portfolio management.',
+                minAmount: 1000,
+                maxAmount: 9999,
+                dailyProfit: 0.8,
+                monthlyProfit: 24,
+                yearlyProfit: 292,
+                duration: 28,
+                riskLevel: 'medium',
+                category: 'mixed',
+                status: 'active',
+                color: '#3B82F6',
+                popular: true,
+                features: ['Higher Returns', 'Portfolio Management', 'Priority Support']
+            },
+            {
+                name: 'Elite',
+                description: 'Maximum returns for high-net-worth investors with dedicated management.',
+                minAmount: 10000,
+                maxAmount: 1000000,
+                dailyProfit: 1.5,
+                monthlyProfit: 45,
+                yearlyProfit: 547.5,
+                duration: 28,
+                riskLevel: 'high',
+                category: 'mixed',
+                status: 'active',
+                color: '#F59E0B',
+                features: ['Maximum Returns', 'Dedicated Manager', 'VIP Events']
+            }
+        ];
+
+        for (const plan of defaultPlans) {
+            await prisma.investmentPlan.upsert({
+                where: { name: plan.name },
+                update: plan,
+                create: plan
+            });
+        }
+
+        await createAuditLog({
+            adminId: req.user!.id,
+            action: 'RESTORE_DEFAULT_PLANS',
+            targetType: 'plan',
+            details: 'Restored system default investment plans',
+            ipAddress: req.ip,
+        });
+
+        res.json({ success: true, message: 'Default plans restored successfully' });
     } catch (error) {
-        res.status(500).json({ error: 'Failed to create plan' });
+        console.error('Restore default plans error:', error);
+        res.status(500).json({ error: 'Failed to restore default plans' });
     }
 });
 
 router.patch('/plans/:id', async (req: AuthRequest, res: Response) => {
     try {
+        const { dailyProfitRate, ...rest } = req.body;
+        const updateData = { ...rest };
+
+        if (dailyProfitRate !== undefined) {
+            const dailyProfit = parseFloat(dailyProfitRate);
+            updateData.dailyProfit = dailyProfit;
+            updateData.monthlyProfit = dailyProfit * 30;
+            updateData.yearlyProfit = dailyProfit * 365;
+        }
+
         const plan = await prisma.investmentPlan.update({
             where: { id: req.params.id },
-            data: req.body,
+            data: updateData,
         });
 
         await createAuditLog({
@@ -619,7 +743,40 @@ router.patch('/plans/:id', async (req: AuthRequest, res: Response) => {
 
         res.json({ plan });
     } catch (error) {
+        console.error('Update plan error:', error);
         res.status(500).json({ error: 'Failed to update plan' });
+    }
+});
+
+router.delete('/plans/:id', async (req: AuthRequest, res: Response) => {
+    try {
+        const { id } = req.params;
+
+        // Check if there are active investments for this plan
+        const activeInvestmentsCount = await prisma.investment.count({
+            where: { planId: id, status: 'ACTIVE' }
+        });
+
+        if (activeInvestmentsCount > 0) {
+            return res.status(400).json({ error: 'Cannot delete plan with active investments' });
+        }
+
+        const plan = await prisma.investmentPlan.delete({
+            where: { id }
+        });
+
+        await createAuditLog({
+            adminId: req.user!.id,
+            action: 'DELETE_PLAN',
+            targetType: 'plan',
+            details: `Deleted investment plan: ${plan.name}`,
+            ipAddress: req.ip,
+        });
+
+        res.json({ success: true, message: 'Plan deleted successfully' });
+    } catch (error) {
+        console.error('Delete plan error:', error);
+        res.status(500).json({ error: 'Failed to delete plan' });
     }
 });
 

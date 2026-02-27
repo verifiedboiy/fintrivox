@@ -248,6 +248,8 @@ export const adminApi = {
     getPlans: () => api.get('/admin/plans'),
     createPlan: (data: Record<string, unknown>) => api.post('/admin/plans', data),
     updatePlan: (id: string, data: Record<string, unknown>) => api.patch(`/admin/plans/${id}`, data),
+    deletePlan: (id: string) => api.delete(`/admin/plans/${id}`),
+    restorePlans: () => api.post('/admin/plans/restore-defaults'),
 
     // Payment Methods
     getPaymentMethods: () => api.get('/admin/payment-methods'),

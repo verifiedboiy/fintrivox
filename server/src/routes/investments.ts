@@ -14,11 +14,16 @@ router.use(requireAuth as any);
 router.get('/plans', async (_req: AuthRequest, res: Response) => {
     try {
         const plans = await prisma.investmentPlan.findMany({
-            where: { status: 'active' },
+            where: {
+                status: {
+                    in: ['active', 'ACTIVE', 'Active']
+                }
+            },
             orderBy: { minAmount: 'asc' },
         });
         res.json({ plans });
     } catch (error) {
+        console.error('Fetch plans error:', error);
         res.status(500).json({ error: 'Failed to fetch plans' });
     }
 });
