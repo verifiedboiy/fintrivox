@@ -17,6 +17,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
+import { Checkbox } from '@/components/ui/checkbox';
 
 import { useAuth } from '@/contexts/AuthContext';
 import { depositApi, paymentMethodApi } from '@/services/api';
@@ -32,7 +33,7 @@ const P1 = 'pk_live_51T57aiHr3EzPXlGWetty6y8eH9d3snSoyugXt7WjBNb70hUj4EOXpT4Q6E7
 const P2 = 'WudQa1WefQNjy2WUjL8R3fVC007zEENS4S';
 const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY || (P1 + P2));
 
-function StripePaymentForm({ amount, onSuccess, onCancel, selectedMethod }: any) {
+function StripePaymentForm({ amount, onSuccess, onCancel, selectedMethod, agreedToPolicy }: any) {
   const stripe = useStripe();
   const elements = useElements();
   const [loading, setLoading] = useState(false);
@@ -106,7 +107,7 @@ function StripePaymentForm({ amount, onSuccess, onCancel, selectedMethod }: any)
         <Button
           type="submit"
           className="flex-1 bg-blue-600 hover:bg-blue-700 font-bold"
-          disabled={loading || !stripe}
+          disabled={loading || !stripe || !agreedToPolicy}
         >
           {loading ? 'Processing...' : `Pay $${(amount).toLocaleString()}`}
         </Button>
@@ -135,6 +136,7 @@ export default function Deposit() {
   const [cardPaid, setCardPaid] = useState(false);
   const [cardError, setCardError] = useState<string | null>(null);
   const [showStripe, setShowStripe] = useState(false);
+  const [agreedToPolicy, setAgreedToPolicy] = useState(false);
 
   useEffect(() => {
     paymentMethodApi.list().then(({ data }) => {
@@ -509,6 +511,7 @@ export default function Deposit() {
                         selectedMethod={selectedPaymentMethod}
                         onSuccess={handleStripeSuccess}
                         onCancel={() => setShowStripe(false)}
+                        agreedToPolicy={agreedToPolicy}
                       />
                     </Elements>
                   )}
@@ -578,13 +581,37 @@ export default function Deposit() {
                 </div>
               )}
 
+              {/* Refund Policy Checkbox */}
+              {amount && (
+                <div className="bg-amber-50/50 p-4 rounded-xl border border-amber-100/50 space-y-3">
+                  <div className="flex items-start gap-3">
+                    <Checkbox
+                      id="refund-policy"
+                      checked={agreedToPolicy}
+                      onCheckedChange={(checked) => setAgreedToPolicy(checked as boolean)}
+                      className="mt-1"
+                    />
+                    <Label
+                      htmlFor="refund-policy"
+                      className="text-xs leading-relaxed text-amber-900 cursor-pointer select-none"
+                    >
+                      <span className="font-bold underline block mb-1">STRICT NO REFUND POLICY</span>
+                      I understand and agree that this deposit is <span className="font-bold">non-refundable</span>.
+                      I agree that if I have any problem with my payment, I will contact <strong>Fintrivox Support</strong> first
+                      before contacting my card issuer or bank.
+                    </Label>
+                  </div>
+                </div>
+              )}
+
               {selectedPaymentMethod?.type !== "card" && (
                 <Button
                   className="w-full bg-blue-600 hover:bg-blue-700 h-12"
                   onClick={handleSubmit}
                   disabled={
                     !amount ||
-                    Number(amount) <= 0
+                    Number(amount) <= 0 ||
+                    !agreedToPolicy
                   }
                 >
                   Confirm Deposit
