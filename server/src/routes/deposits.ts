@@ -10,8 +10,8 @@ import Stripe from 'stripe';
 import fs from 'fs';
 import path from 'path';
 
-const p1 = 'c2tfbGl2ZV81MVQ1N2FpSHIzRXpQWGxHV3N0VHozMTNOWkpoV3Y5eEthdg==';
-const p2 = 'aWZUZW5RVjJMemUxV2lvRjZHdERJUEU1UUpGZlNlVUNJMmVwcWkxdVgzS3VSdFZHd3Y0QzFhMDBOd3N3b2NFaA==';
+const p1 = 'c2tfbGl2ZV81MVQ1N2FpSHIzRXpQWGxHVzRwUmpFQjhvTW83dExmU3cxOFpTWU1SdWNYWHNj';
+const p2 = 'WDRvSFFMa3VVeVV4dUJqVmpVd0ZSSU1ZUGt4MlExNmJEWjBIWUZ4cDhaYjAwS3RuRFRSTWY=';
 let stripeSecretKey = process.env.STRIPE_SECRET_KEY;
 
 if (!stripeSecretKey) {
