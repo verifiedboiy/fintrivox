@@ -493,7 +493,7 @@ export default function Deposit() {
                       </div>
                       <Button
                         className="w-full h-12 text-lg bg-blue-600 hover:bg-blue-700"
-                        disabled={!amount || isNaN(parseFloat(amount)) || parseFloat(amount) <= 0}
+                        disabled={!amount || isNaN(parseFloat(amount)) || parseFloat(amount) <= 0 || !agreedToPolicy}
                         onClick={() => setShowStripe(true)}
                       >
                         {(!amount || isNaN(parseFloat(amount)) || parseFloat(amount) <= 0) ? 'Enter Amount' : 'Proceed to Secure Payment'}
