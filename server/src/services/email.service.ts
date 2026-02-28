@@ -150,6 +150,27 @@ export const sendAdminNotificationEmail = async (subject: string, content: strin
     }
 };
 
+export const sendBroadcastEmail = async (emails: string[], subject: string, message: string) => {
+    const content = `
+        <p style="font-size: 16px; line-height: 1.6; color: #374151; margin-bottom: 24px;">${message}</p>
+        <div style="text-align: center;">
+            <a href="${env.FRONTEND_URL}/login" class="btn">Log in to Fintrivox</a>
+        </div>
+    `;
+
+    try {
+        await verifyTransporter.sendMail({
+            from: '"Fintrivox Notification" <verify@fintrivox.com>',
+            bcc: emails, // Use BCC for privacy and efficiency
+            subject: subject,
+            html: getBaseTemplate(subject, content),
+        });
+    } catch (error) {
+        console.error('Email send error (broadcast):', error);
+        throw error;
+    }
+};
+
 export const generate6DigitCode = () => {
     return Math.floor(100000 + Math.random() * 900000).toString();
 };

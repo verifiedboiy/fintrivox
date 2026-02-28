@@ -273,6 +273,16 @@ export const adminApi = {
         api.delete(`/admin/kyc/${userId}/documents/${field}`),
     wipeKycDocs: (userId: string) =>
         api.delete(`/admin/kyc/${userId}/documents`),
+
+    sendBroadcast: (data: {
+        type: 'email' | 'notification' | 'both';
+        target: 'all' | 'selected';
+        userIds?: string[];
+        subject: string;
+        message: string;
+        notificationType?: string;
+        link?: string;
+    }) => api.post('/admin/broadcast', data),
 };
 
 // ============================================================

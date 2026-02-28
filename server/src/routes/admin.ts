@@ -3,8 +3,8 @@ import { Router, Response } from 'express';
 import prisma from '../config/db.js';
 import { requireAuth, requireAdmin, type AuthRequest } from '../middleware/auth.js';
 import { createAuditLog } from '../utils/audit.js';
-import { createNotification, createBroadcastNotification } from '../services/notification.service.js';
-import { sendKYCStatusEmail } from '../services/email.service.js';
+import { sendKYCStatusEmail, sendBroadcastEmail } from '../services/email.service.js';
+import { createNotification, createBroadcastNotification, createTargetedNotifications } from '../services/notification.service.js';
 
 const router = Router();
 
@@ -777,6 +777,81 @@ router.delete('/plans/:id', async (req: AuthRequest, res: Response) => {
     } catch (error) {
         console.error('Delete plan error:', error);
         res.status(500).json({ error: 'Failed to delete plan' });
+    }
+});
+
+router.post('/broadcast', async (req: AuthRequest, res: Response) => {
+    try {
+        const { type, target, userIds, subject, message, notificationType, link } = req.body;
+
+        if (!type || !target || !subject || !message) {
+            return res.status(400).json({ error: 'Missing required fields: type, target, subject, or message' });
+        }
+
+        let targetUserIds: string[] = [];
+        let targetEmails: string[] = [];
+
+        if (target === 'all') {
+            const users = await prisma.user.findMany({
+                where: { status: 'ACTIVE' },
+                select: { id: true, email: true }
+            });
+            targetUserIds = users.map(u => u.id);
+            targetEmails = users.map(u => u.email);
+        } else if (target === 'selected') {
+            if (!userIds || !Array.isArray(userIds) || userIds.length === 0) {
+                return res.status(400).json({ error: 'Selective broadcast requires userIds' });
+            }
+            const users = await prisma.user.findMany({
+                where: { id: { in: userIds } },
+                select: { id: true, email: true }
+            });
+            targetUserIds = users.map(u => u.id);
+            targetEmails = users.map(u => u.email);
+        }
+
+        const results: any = {};
+
+        // Send System Notifications
+        if (type === 'notification' || type === 'both') {
+            if (target === 'all') {
+                await createBroadcastNotification({
+                    title: subject,
+                    message: message,
+                    type: notificationType || 'INFO',
+                    link: link
+                });
+            } else {
+                await createTargetedNotifications({
+                    userIds: targetUserIds,
+                    title: subject,
+                    message: message,
+                    type: notificationType || 'INFO',
+                    link: link
+                });
+            }
+            results.notifications = `Sent to ${targetUserIds.length} users`;
+        }
+
+        // Send Emails
+        if (type === 'email' || type === 'both') {
+            await sendBroadcastEmail(targetEmails, subject, message);
+            results.emails = `Sent to ${targetEmails.length} users`;
+        }
+
+        // Audit Log
+        await createAuditLog({
+            adminId: req.user!.id,
+            action: 'SEND_BROADCAST',
+            targetType: 'system',
+            details: `Broadcast sent to ${targetUserIds.length} users. Type: ${type}, Target: ${target}, Subject: ${subject}`,
+            ipAddress: req.ip,
+        });
+
+        res.json({ success: true, results });
+    } catch (error) {
+        console.error('Broadcast error:', error);
+        res.status(500).json({ error: 'Failed to send broadcast' });
     }
 });
 

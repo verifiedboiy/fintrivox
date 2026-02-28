@@ -41,3 +41,23 @@ export async function createBroadcastNotification(params: {
         data: notifications
     });
 }
+
+export async function createTargetedNotifications(params: {
+    userIds: string[];
+    title: string;
+    message: string;
+    type?: 'INFO' | 'SUCCESS' | 'WARNING' | 'ERROR';
+    link?: string;
+}) {
+    const notifications = params.userIds.map(userId => ({
+        userId,
+        title: params.title,
+        message: params.message,
+        type: params.type || 'INFO',
+        link: params.link,
+    }));
+
+    return prisma.notification.createMany({
+        data: notifications
+    });
+}

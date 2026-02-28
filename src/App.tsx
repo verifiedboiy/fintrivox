@@ -52,6 +52,7 @@ const AdminPlans = lazy(() => import('@/pages/admin/AdminPlans'));
 const AdminSupport = lazy(() => import('@/pages/admin/AdminSupport'));
 const AdminSettings = lazy(() => import('@/pages/admin/AdminSettings'));
 const AdminLogs = lazy(() => import('@/pages/admin/AdminLogs'));
+const AdminBroadcast = lazy(() => import('@/pages/admin/AdminBroadcast'));
 
 // Loading spinner shown while lazy chunks load
 function PageLoader() {
@@ -160,6 +161,7 @@ function AppRoutes() {
             <Route path="support" element={<AdminSupport />} />
             <Route path="settings" element={<AdminSettings />} />
             <Route path="logs" element={<AdminLogs />} />
+            <Route path="broadcast" element={<AdminBroadcast />} />
           </Route>
 
           {/* 404 Fallback */}

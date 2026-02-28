@@ -19,7 +19,8 @@ import {
   Crown,
   Bell,
   Search,
-  CheckCheck
+  CheckCheck,
+  Megaphone
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
@@ -87,6 +88,7 @@ export default function AdminLayout() {
     { name: 'Transactions', href: '/admin/transactions', icon: ArrowLeftRight },
     { name: 'KYC Verification', href: '/admin/kyc', icon: ShieldCheck },
     { name: 'Plans', href: '/admin/plans', icon: Package },
+    { name: 'Broadcast', href: '/admin/broadcast', icon: Megaphone },
     { name: 'Support Tickets', href: '/admin/support', icon: MessageSquare },
     { name: 'System Logs', href: '/admin/logs', icon: FileText },
     { name: 'Settings', href: '/admin/settings', icon: Settings },
