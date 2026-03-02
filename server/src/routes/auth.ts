@@ -182,7 +182,6 @@ router.post('/login', validate(loginSchema), async (req, res: Response) => {
         }
 
         // Check if 2FA is required (bypass for demo account)
-        const isDemo = user.email === 'john.doe@example.com';
         if (user.twoFactorEnabled && !isDemo) {
             console.log(`[AUTH] Login: 2FA required (${email})`);
             // Return a temporary token for 2FA verification
