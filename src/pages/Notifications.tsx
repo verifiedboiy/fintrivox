@@ -28,13 +28,6 @@ export default function Notifications() {
     } catch (err) { console.error(err); }
   };
 
-  const handleDismiss = async (id: string) => {
-    try {
-      await notificationApi.delete(id);
-      setNotifications(prev => prev.filter(n => n.id !== id));
-    } catch (err) { console.error(err); }
-  };
-
   const handleMarkAllRead = async () => {
     try {
       await notificationApi.markAllRead();
@@ -97,9 +90,6 @@ export default function Notifications() {
                           <Check className="w-4 h-4" />
                         </Button>
                       )}
-                      <Button size="sm" variant="ghost" className="text-gray-400 hover:text-red-600 hover:bg-red-50 h-8 w-8 p-0" onClick={() => handleDismiss(notif.id)} title="Dismiss">
-                        <X className="w-4 h-4" />
-                      </Button>
                     </div>
                   </div>
                 </div>
