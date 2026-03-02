@@ -17,6 +17,7 @@ import SuspendedScreen from '@/components/SuspendedScreen';
 
 // Public Pages
 const Home = lazy(() => import('@/pages/Home'));
+const AdVideo = lazy(() => import('@/pages/AdVideo'));
 const Login = lazy(() => import('@/pages/Login'));
 const Register = lazy(() => import('@/pages/Register'));
 const ForgotPassword = lazy(() => import('@/pages/ForgotPassword'));
@@ -24,6 +25,7 @@ const ResetPassword = lazy(() => import('@/pages/ResetPassword'));
 const VerifyEmail = lazy(() => import('@/pages/VerifyEmail'));
 const About = lazy(() => import('@/pages/About'));
 const Support = lazy(() => import('@/pages/Support'));
+const PrivacyPolicy = lazy(() => import('@/pages/PrivacyPolicy'));
 const Learn = lazy(() => import('@/pages/Learn'));
 const NotFound = lazy(() => import('@/pages/NotFound'));
 
@@ -111,10 +113,13 @@ function AppRoutes() {
       <Suspense fallback={<PageLoader />}>
         <Routes>
           {/* Public Routes */}
+          <Route path="/ad-video" element={<Suspense fallback={<PageLoader />}><AdVideo /></Suspense>} />
+
           <Route element={<MainLayout />}>
             <Route path="/" element={<Home />} />
             <Route path="/about" element={<About />} />
             <Route path="/support" element={<Support />} />
+            <Route path="/privacy" element={<PrivacyPolicy />} />
             <Route path="/learn" element={<Learn />} />
           </Route>
 
@@ -143,6 +148,8 @@ function AppRoutes() {
             <Route path="security" element={<Security />} />
             <Route path="referrals" element={<Referrals />} />
             <Route path="notifications" element={<Notifications />} />
+            <Route path="support" element={<Support />} />
+            <Route path="privacy" element={<PrivacyPolicy />} />
           </Route>
 
           {/* Admin Routes */}

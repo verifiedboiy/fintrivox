@@ -19,7 +19,9 @@ import {
   X,
   BadgeCheck,
   Landmark,
-  AlertTriangle
+  AlertTriangle,
+  MessageSquare,
+  FileText
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
@@ -105,6 +107,8 @@ export default function DashboardLayout() {
     { name: 'Security', href: '/dashboard/security', icon: Shield },
     { name: 'Referrals', href: '/dashboard/referrals', icon: Users },
     { name: 'Notifications', href: '/dashboard/notifications', icon: Bell, badge: unreadCount > 0 ? unreadCount : null },
+    { name: 'Help & Support', href: '/dashboard/support', icon: MessageSquare },
+    { name: 'Privacy Policy', href: '/privacy', icon: FileText },
   ];
 
   const isActive = (path: string) =>

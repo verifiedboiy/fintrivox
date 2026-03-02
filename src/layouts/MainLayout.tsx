@@ -38,6 +38,7 @@ export default function MainLayout() {
     { name: 'Learn', href: '/learn' },
     { name: 'About', href: '/about' },
     { name: 'Support', href: '/support' },
+    { name: 'Privacy', href: '/privacy' },
   ];
 
   const isActive = (path: string) => location.pathname === path;
@@ -47,8 +48,8 @@ export default function MainLayout() {
       {/* Navigation */}
       <nav
         className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${isScrolled
-            ? 'bg-white/95 backdrop-blur-md shadow-sm border-b border-gray-100'
-            : 'bg-transparent'
+          ? 'bg-white/95 backdrop-blur-md shadow-sm border-b border-gray-100'
+          : 'bg-transparent'
           }`}
       >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -68,8 +69,8 @@ export default function MainLayout() {
                   <DropdownMenu key={link.name}>
                     <DropdownMenuTrigger asChild>
                       <button className={`px-4 py-2 text-sm font-medium rounded-lg flex items-center gap-1 transition-colors ${isActive(link.href)
-                          ? 'text-blue-600 bg-blue-50'
-                          : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
+                        ? 'text-blue-600 bg-blue-50'
+                        : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
                         }`}>
                         {link.name}
                         <ChevronDown className="w-4 h-4" />
@@ -101,8 +102,8 @@ export default function MainLayout() {
                     key={link.name}
                     to={link.href}
                     className={`px-4 py-2 text-sm font-medium rounded-lg transition-colors ${isActive(link.href)
-                        ? 'text-blue-600 bg-blue-50'
-                        : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
+                      ? 'text-blue-600 bg-blue-50'
+                      : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
                       }`}
                   >
                     {link.name}
@@ -151,8 +152,8 @@ export default function MainLayout() {
                   to={link.href}
                   onClick={() => setMobileMenuOpen(false)}
                   className={`block px-4 py-3 rounded-lg text-sm font-medium ${isActive(link.href)
-                      ? 'text-blue-600 bg-blue-50'
-                      : 'text-gray-600 hover:bg-gray-50'
+                    ? 'text-blue-600 bg-blue-50'
+                    : 'text-gray-600 hover:bg-gray-50'
                     }`}
                 >
                   {link.name}
@@ -248,7 +249,7 @@ export default function MainLayout() {
             <div>
               <h4 className="text-white font-semibold mb-4">Legal</h4>
               <ul className="space-y-2 text-sm">
-                <li><Link to="/about" className="hover:text-white transition-colors">Privacy Policy</Link></li>
+                <li><Link to="/privacy" className="hover:text-white transition-colors">Privacy Policy</Link></li>
                 <li><Link to="/about" className="hover:text-white transition-colors">Terms of Service</Link></li>
                 <li><Link to="/about" className="hover:text-white transition-colors">Risk Disclosure</Link></li>
                 <li><Link to="/about" className="hover:text-white transition-colors">Cookie Policy</Link></li>
