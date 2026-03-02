@@ -167,6 +167,43 @@ export default function DashboardLayout() {
     </div>
   );
 
+  if (user?.status === 'SUSPENDED') {
+    return (
+      <div className="fixed inset-0 z-[100] bg-white flex items-center justify-center p-4">
+        <div className="max-w-md w-full text-center">
+          <div className="w-20 h-20 bg-red-100 text-red-600 rounded-full flex items-center justify-center mx-auto mb-6">
+            <AlertTriangle className="w-10 h-10" />
+          </div>
+          <h1 className="text-3xl font-bold text-gray-900 mb-4">Account Frozen</h1>
+          <div className="bg-red-50 border border-red-100 rounded-xl p-6 mb-8 text-left">
+            <p className="text-sm font-semibold text-red-800 uppercase tracking-wider mb-2">Reason for Suspension:</p>
+            <p className="text-red-700 italic">
+              "{user.suspensionReason || "Our automated security system has detected unusual activity associated with your account. For your protection, your access has been temporarily restricted."}"
+            </p>
+          </div>
+          <p className="text-gray-600 mb-8">
+            To resolve this issue and restore access to your assets, please contact our verification department.
+          </p>
+          <div className="space-y-3">
+            <a
+              href="mailto:support@fintrivox.com"
+              className="block w-full py-3 px-4 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg transition-colors"
+            >
+              Contact Support
+            </a>
+            <Button
+              variant="outline"
+              className="w-full py-3 h-auto text-gray-600"
+              onClick={() => { logout(); navigate('/login'); }}
+            >
+              Sign out and try again
+            </Button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Demo Mode Banner */}

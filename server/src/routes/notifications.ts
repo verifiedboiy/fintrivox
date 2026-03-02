@@ -59,4 +59,16 @@ router.patch('/read-all', async (req: AuthRequest, res: Response) => {
     }
 });
 
+// ---------- DELETE /api/notifications/:id ----------
+router.delete('/:id', async (req: AuthRequest, res: Response) => {
+    try {
+        await prisma.notification.deleteMany({
+            where: { id: req.params.id, userId: req.user!.id },
+        });
+        res.json({ success: true });
+    } catch (error) {
+        res.status(500).json({ error: 'Failed' });
+    }
+});
+
 export default router;

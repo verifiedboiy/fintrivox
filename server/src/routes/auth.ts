@@ -147,7 +147,7 @@ router.post('/login', validate(loginSchema), async (req, res: Response) => {
 
         if (user.status === 'SUSPENDED') {
             console.log(`[AUTH] Login failed: Account suspended (${email})`);
-            res.status(403).json({ error: 'Account has been suspended' });
+            res.status(403).json({ error: 'Account suspended. Please contact our support team at support@fintrivox.com' });
             return;
         }
 

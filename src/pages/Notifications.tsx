@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Bell, Check, CheckCheck, Loader2 } from 'lucide-react';
+import { Bell, Check, CheckCheck, Loader2, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -25,6 +25,13 @@ export default function Notifications() {
     try {
       await notificationApi.markRead(id);
       setNotifications(prev => prev.map(n => n.id === id ? { ...n, read: true } : n));
+    } catch (err) { console.error(err); }
+  };
+
+  const handleDismiss = async (id: string) => {
+    try {
+      await notificationApi.delete(id);
+      setNotifications(prev => prev.filter(n => n.id !== id));
     } catch (err) { console.error(err); }
   };
 
@@ -59,21 +66,26 @@ export default function Notifications() {
             <CardContent className="p-4">
               <div className="flex items-start gap-4">
                 <div className={`w-3 h-3 rounded-full mt-1.5 flex-shrink-0 ${notif.type === 'success' ? 'bg-green-500' :
-                    notif.type === 'warning' ? 'bg-amber-500' :
-                      notif.type === 'error' ? 'bg-red-500' : 'bg-blue-500'
+                  notif.type === 'warning' ? 'bg-amber-500' :
+                    notif.type === 'error' ? 'bg-red-500' : 'bg-blue-500'
                   }`} />
                 <div className="flex-1 min-w-0">
                   <div className="flex items-start justify-between gap-2">
-                    <div>
+                    <div className="flex-1">
                       <p className="font-medium text-gray-900">{notif.title}</p>
                       <p className="text-sm text-gray-600 mt-1">{notif.message}</p>
                       <p className="text-xs text-gray-400 mt-2">{notif.createdAt.toLocaleString()}</p>
                     </div>
-                    {!notif.read && (
-                      <Button size="sm" variant="ghost" onClick={() => handleMarkRead(notif.id)}>
-                        <Check className="w-4 h-4" />
+                    <div className="flex items-center gap-1">
+                      {!notif.read && (
+                        <Button size="sm" variant="ghost" className="text-blue-600 hover:text-blue-700 hover:bg-blue-50 h-8 w-8 p-0" onClick={() => handleMarkRead(notif.id)} title="Mark as read">
+                          <Check className="w-4 h-4" />
+                        </Button>
+                      )}
+                      <Button size="sm" variant="ghost" className="text-gray-400 hover:text-red-600 hover:bg-red-50 h-8 w-8 p-0" onClick={() => handleDismiss(notif.id)} title="Dismiss">
+                        <X className="w-4 h-4" />
                       </Button>
-                    )}
+                    </div>
                   </div>
                 </div>
               </div>
