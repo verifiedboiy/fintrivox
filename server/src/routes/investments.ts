@@ -115,7 +115,7 @@ router.post('/', validate(investSchema), async (req: AuthRequest, res: Response)
         // Notify admin
         await sendAdminNotificationEmail(
             `New Investment: $${amount} in ${plan.name}`,
-            `<p><strong>User:</strong> ${user.firstName} ${user.lastName} (${user.email})</p>
+            `<p><strong>User:</strong> ${updatedUser.firstName} ${updatedUser.lastName} (${updatedUser.email})</p>
              <p><strong>Amount:</strong> $${amount.toLocaleString()}</p>
              <p><strong>Plan:</strong> ${plan.name}</p>
              <p><strong>Daily Profit:</strong> ${plan.dailyProfit}%</p>

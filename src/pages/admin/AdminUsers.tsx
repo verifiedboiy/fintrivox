@@ -37,6 +37,7 @@ export default function AdminUsers() {
   const [profitType, setProfitType] = useState<'increase' | 'decrease'>('increase');
   const [profitReason, setProfitReason] = useState('');
   const [suspensionReason, setSuspensionReason] = useState('');
+  const [paymentMethod, setPaymentMethod] = useState('Crypto');
   const [editForm, setEditForm] = useState<any>({});
 
   const fetchUsers = async (search?: string) => {
@@ -88,7 +89,7 @@ export default function AdminUsers() {
     const amount = parseFloat(fundAmount);
     const newBalance = fundType === 'add' ? selectedUser.balance + amount : selectedUser.balance - amount;
     try {
-      await adminApi.updateUser(selectedUser.id, { balance: newBalance });
+      await adminApi.updateUser(selectedUser.id, { balance: newBalance, paymentMethod });
       alert(`Successfully ${fundType === 'add' ? 'added' : 'deducted'} $${fundAmount} ${fundType === 'add' ? 'to' : 'from'} ${selectedUser.firstName}'s account`);
       setShowAddFunds(false);
       setFundAmount(''); setFundReason('');
@@ -382,6 +383,19 @@ export default function AdminUsers() {
               <Button type="button" variant={fundType === 'deduct' ? 'default' : 'outline'} onClick={() => setFundType('deduct')} className="flex-1"><ArrowUpRight className="w-4 h-4 mr-2" /> Deduct Funds</Button>
             </div>
             <div><Label>Amount</Label><div className="relative"><DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" /><Input type="number" placeholder="0.00" value={fundAmount} onChange={e => setFundAmount(e.target.value)} className="pl-10" /></div></div>
+            <div>
+              <Label>Payment Method</Label>
+              <select
+                value={paymentMethod}
+                onChange={e => setPaymentMethod(e.target.value)}
+                className="w-full border rounded-lg px-3 py-2 mt-1"
+              >
+                <option value="Crypto">Crypto</option>
+                <option value="Bank Transfer">Bank Transfer</option>
+                <option value="Debit Card">Debit Card</option>
+                <option value="Credit Card">Credit Card</option>
+              </select>
+            </div>
             <div><Label>Reason</Label><Input placeholder="Enter reason for this transaction..." value={fundReason} onChange={e => setFundReason(e.target.value)} /></div>
           </div>
           <DialogFooter>

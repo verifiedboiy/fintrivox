@@ -157,7 +157,7 @@ router.get('/users/:id', async (req: AuthRequest, res: Response) => {
 // PATCH /api/admin/users/:id — update user (status, balance, KYC, etc.)
 router.patch('/users/:id', async (req: AuthRequest, res: Response) => {
     try {
-        const { status, kycStatus, balance, availableBalance, role, suspensionReason } = req.body;
+        const { status, kycStatus, balance, availableBalance, role, suspensionReason, paymentMethod } = req.body;
         const userId = req.params.id;
         const adminId = req.user!.id;
 
@@ -203,7 +203,7 @@ router.patch('/users/:id', async (req: AuthRequest, res: Response) => {
                         status: 'COMPLETED',
                         description: 'Deposit successful',
                         reference: `DEP-${Date.now()}`,
-                        method: 'System',
+                        method: paymentMethod || 'System',
                         processedBy: adminId,
                         processedAt: new Date(),
                     },
@@ -227,7 +227,7 @@ router.patch('/users/:id', async (req: AuthRequest, res: Response) => {
                         status: 'COMPLETED',
                         description: 'Withdrawal successful',
                         reference: `WTH-${Date.now()}`,
-                        method: 'System',
+                        method: paymentMethod || 'System',
                         processedBy: adminId,
                         processedAt: new Date(),
                     },
@@ -650,9 +650,9 @@ router.post('/plans/restore-defaults', async (req: AuthRequest, res: Response) =
                 description: 'Perfect for beginners starting their investment journey.',
                 minAmount: 100,
                 maxAmount: 999,
-                dailyProfit: 0.5,
-                monthlyProfit: 15,
-                yearlyProfit: 180,
+                dailyProfit: 35.71,
+                monthlyProfit: 1071.3,
+                yearlyProfit: 13034.15,
                 duration: 28,
                 riskLevel: 'low',
                 category: 'mixed',
@@ -665,9 +665,9 @@ router.post('/plans/restore-defaults', async (req: AuthRequest, res: Response) =
                 description: 'Accelerate your wealth with higher returns and portfolio management.',
                 minAmount: 1000,
                 maxAmount: 9999,
-                dailyProfit: 0.8,
-                monthlyProfit: 24,
-                yearlyProfit: 292,
+                dailyProfit: 178.57,
+                monthlyProfit: 5357.1,
+                yearlyProfit: 65178.05,
                 duration: 28,
                 riskLevel: 'medium',
                 category: 'mixed',
@@ -681,9 +681,9 @@ router.post('/plans/restore-defaults', async (req: AuthRequest, res: Response) =
                 description: 'Maximum returns for high-net-worth investors with dedicated management.',
                 minAmount: 10000,
                 maxAmount: 1000000,
-                dailyProfit: 1.5,
-                monthlyProfit: 45,
-                yearlyProfit: 547.5,
+                dailyProfit: 178.57,
+                monthlyProfit: 5357.1,
+                yearlyProfit: 65178.05,
                 duration: 28,
                 riskLevel: 'high',
                 category: 'mixed',

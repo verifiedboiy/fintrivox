@@ -90,7 +90,12 @@ export default function Invest() {
         dailyProfit: selectedPlan.dailyProfit,
         duration: selectedPlan.duration,
         endDate: new Date(Date.now() + selectedPlan.duration * 24 * 60 * 60 * 1000).toLocaleDateString(),
-        reference: `INV-${Date.now()}`
+        reference: `INV-${Date.now()}`,
+        category: selectedPlan.category,
+        riskLevel: selectedPlan.riskLevel,
+        dailyReturn: (parseFloat(investAmount) * selectedPlan.dailyProfit) / 100,
+        totalReturn: (parseFloat(investAmount) * selectedPlan.dailyProfit / 100) * selectedPlan.duration,
+        date: new Date().toLocaleDateString()
       });
       setShowReceipt(true);
 
