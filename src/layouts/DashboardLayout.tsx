@@ -225,6 +225,12 @@ export default function DashboardLayout() {
         <div className="flex items-center justify-between h-16 px-4 lg:px-8">
           {/* Left side */}
           <div className="flex items-center gap-4">
+            <button
+              onClick={() => setSidebarOpen(true)}
+              className="lg:hidden p-2 rounded-lg hover:bg-gray-100"
+            >
+              <Menu className="w-5 h-5 text-gray-600" />
+            </button>
             <Link to="/dashboard" className="flex items-center gap-2">
               <div className="w-8 h-8 bg-gradient-to-br from-blue-600 to-indigo-700 rounded-lg flex items-center justify-center">
                 <TrendingUp className="w-5 h-5 text-white" />
