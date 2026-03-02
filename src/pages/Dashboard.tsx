@@ -15,7 +15,9 @@ import {
   EyeOff,
   Activity,
   BarChart3,
-  Loader2
+  Loader2,
+  Lock,
+  ShieldAlert
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -65,7 +67,7 @@ function TradingViewChartWidget() {
 }
 
 export default function Dashboard() {
-  const { user } = useAuth();
+  const { user, isDemo } = useAuth();
   const [showBalance, setShowBalance] = useState(true);
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState({
@@ -282,16 +284,16 @@ export default function Dashboard() {
           <p className="text-gray-500">Welcome back, {user.firstName}! Here's your portfolio overview.</p>
         </div>
         <div className="flex items-center gap-3">
-          <Link to="/dashboard/deposit">
-            <Button className="bg-green-600 hover:bg-green-700">
-              <Plus className="w-4 h-4 mr-2" />
-              Deposit
+          <Link to={isDemo ? '#' : "/dashboard/deposit"} className={isDemo ? 'cursor-not-allowed' : ''}>
+            <Button className={`${isDemo ? 'bg-gray-400 cursor-not-allowed' : 'bg-green-600 hover:bg-green-700'}`}>
+              {isDemo ? <Lock className="w-4 h-4 mr-2" /> : <Plus className="w-4 h-4 mr-2" />}
+              {isDemo ? 'Deposit Locked' : 'Deposit'}
             </Button>
           </Link>
-          <Link to="/dashboard/withdraw">
-            <Button variant="outline">
-              <Minus className="w-4 h-4 mr-2" />
-              Withdraw
+          <Link to={isDemo ? '#' : "/dashboard/withdraw"} className={isDemo ? 'cursor-not-allowed' : ''}>
+            <Button variant="outline" className={isDemo ? 'text-gray-400 border-gray-200 cursor-not-allowed' : ''}>
+              {isDemo ? <ShieldAlert className="w-4 h-4 mr-2" /> : <Minus className="w-4 h-4 mr-2" />}
+              {isDemo ? 'Withdraw Locked' : 'Withdraw'}
             </Button>
           </Link>
         </div>
