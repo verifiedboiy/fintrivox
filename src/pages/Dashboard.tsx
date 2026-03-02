@@ -91,8 +91,42 @@ export default function Dashboard() {
           notificationApi.list(),
         ]);
 
+        let unrealizedProfitTotal = 0;
+
+        if (invRes.status === 'fulfilled') {
+          const fetchedInvestments = invRes.value.data.investments || [];
+          setAllInvestments(fetchedInvestments);
+
+          // "Smart Jump": Calculate profit earned since last server update
+          const now = Date.now();
+          fetchedInvestments.forEach((inv: any) => {
+            if (inv.status === 'ACTIVE') {
+              const lastUpdate = new Date(inv.lastProfitUpdate).getTime();
+              const timePassedMs = now - lastUpdate;
+              if (timePassedMs > 0) {
+                const growthRatePerMs = (inv.amount * (inv.dailyProfitRate || 0) / 100) / (24 * 60 * 60 * 1000);
+                unrealizedProfitTotal += growthRatePerMs * timePassedMs;
+              }
+            }
+          });
+
+          setActiveInvestments(
+            fetchedInvestments
+              .filter((inv: any) => inv.status === 'ACTIVE')
+              .slice(0, 3)
+              .map((inv: any) => ({
+                ...inv,
+                planName: inv.plan?.name || 'Investment',
+              }))
+          );
+        }
+
         if (statsRes.status === 'fulfilled') {
-          setStats(s => ({ ...s, ...statsRes.value.data.stats }));
+          setStats(s => ({
+            ...s,
+            ...statsRes.value.data.stats,
+            totalProfit: (statsRes.value.data.stats.totalProfit || 0) + unrealizedProfitTotal
+          }));
         } else {
           // Fallback: use user balance from auth context
           setStats(s => ({
@@ -100,7 +134,7 @@ export default function Dashboard() {
             totalBalance: user.balance || 0,
             availableBalance: user.availableBalance || 0,
             investedAmount: user.investedAmount || 0,
-            totalProfit: user.totalProfit || 0,
+            totalProfit: (user.totalProfit || 0) + unrealizedProfitTotal,
           }));
         }
 
@@ -111,20 +145,6 @@ export default function Dashboard() {
             status: tx.status.toLowerCase(),
             createdAt: new Date(tx.createdAt),
           })));
-        }
-
-        if (invRes.status === 'fulfilled') {
-          const fetchedInvestments = invRes.value.data.investments || [];
-          setAllInvestments(fetchedInvestments);
-          setActiveInvestments(
-            fetchedInvestments
-              .filter((inv: any) => inv.status === 'ACTIVE')
-              .slice(0, 3)
-              .map((inv: any) => ({
-                ...inv,
-                planName: inv.plan?.name || 'Investment',
-              }))
-          );
         }
 
         if (notifRes.status === 'fulfilled') {
