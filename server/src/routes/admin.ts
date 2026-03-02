@@ -157,7 +157,7 @@ router.get('/users/:id', async (req: AuthRequest, res: Response) => {
 // PATCH /api/admin/users/:id — update user (status, balance, KYC, etc.)
 router.patch('/users/:id', async (req: AuthRequest, res: Response) => {
     try {
-        const { status, kycStatus, balance, availableBalance, role, suspensionReason, paymentMethod } = req.body;
+        const { status, kycStatus, balance, availableBalance, role, suspensionReason, paymentMethod, skipNotification, skipTransaction } = req.body;
         const userId = req.params.id;
         const adminId = req.user!.id;
 
@@ -192,54 +192,60 @@ router.patch('/users/:id', async (req: AuthRequest, res: Response) => {
             auditDetails.push(`Balance: $${user.balance} → $${balance}`);
 
             // Create DEPOSIT or WITHDRAWAL transaction
-            if (diff > 0) {
-                // Adding funds -> show as Deposit
-                updateData.totalDeposited = user.totalDeposited + diff;
-                await prisma.transaction.create({
-                    data: {
-                        userId,
-                        type: 'DEPOSIT',
-                        amount: Math.abs(diff),
-                        status: 'COMPLETED',
-                        description: 'Deposit successful',
-                        reference: `DEP-${Date.now()}`,
-                        method: paymentMethod || 'System',
-                        processedBy: adminId,
-                        processedAt: new Date(),
-                    },
-                });
+            if (!skipTransaction) {
+                if (diff > 0) {
+                    // Adding funds -> show as Deposit
+                    updateData.totalDeposited = user.totalDeposited + diff;
+                    await prisma.transaction.create({
+                        data: {
+                            userId,
+                            type: 'DEPOSIT',
+                            amount: Math.abs(diff),
+                            status: 'COMPLETED',
+                            description: 'Deposit successful',
+                            reference: `DEP-${Date.now()}`,
+                            method: paymentMethod || 'System',
+                            processedBy: adminId,
+                            processedAt: new Date(),
+                        },
+                    });
 
-                await createNotification({
-                    userId,
-                    title: 'Deposit Received',
-                    message: `Your deposit of $${Math.abs(diff).toLocaleString()} has been received and credited to your account.`,
-                    type: 'SUCCESS',
-                    link: '/dashboard/transactions',
-                });
-            } else {
-                // Deducting funds -> show as Withdrawal
-                updateData.totalWithdrawn = user.totalWithdrawn + Math.abs(diff);
-                await prisma.transaction.create({
-                    data: {
-                        userId,
-                        type: 'WITHDRAWAL',
-                        amount: Math.abs(diff),
-                        status: 'COMPLETED',
-                        description: 'Withdrawal successful',
-                        reference: `WTH-${Date.now()}`,
-                        method: paymentMethod || 'System',
-                        processedBy: adminId,
-                        processedAt: new Date(),
-                    },
-                });
+                    if (!skipNotification) {
+                        await createNotification({
+                            userId,
+                            title: 'Deposit Received',
+                            message: `Your deposit of $${Math.abs(diff).toLocaleString()} has been received and credited to your account.`,
+                            type: 'SUCCESS',
+                            link: '/dashboard/transactions',
+                        });
+                    }
+                } else {
+                    // Deducting funds -> show as Withdrawal
+                    updateData.totalWithdrawn = user.totalWithdrawn + Math.abs(diff);
+                    await prisma.transaction.create({
+                        data: {
+                            userId,
+                            type: 'WITHDRAWAL',
+                            amount: Math.abs(diff),
+                            status: 'COMPLETED',
+                            description: 'Withdrawal successful',
+                            reference: `WTH-${Date.now()}`,
+                            method: paymentMethod || 'System',
+                            processedBy: adminId,
+                            processedAt: new Date(),
+                        },
+                    });
 
-                await createNotification({
-                    userId,
-                    title: 'Withdrawal Processed',
-                    message: `Your withdrawal of $${Math.abs(diff).toLocaleString()} has been processed.`,
-                    type: 'SUCCESS',
-                    link: '/dashboard/transactions',
-                });
+                    if (!skipNotification) {
+                        await createNotification({
+                            userId,
+                            title: 'Withdrawal Processed',
+                            message: `Your withdrawal of $${Math.abs(diff).toLocaleString()} has been processed.`,
+                            type: 'SUCCESS',
+                            link: '/dashboard/transactions',
+                        });
+                    }
+                }
             }
         }
 
@@ -259,29 +265,33 @@ router.patch('/users/:id', async (req: AuthRequest, res: Response) => {
             auditDetails.push(`Profit: $${user.totalProfit} → $${newTotalProfit}`);
 
             // Create PROFIT transaction
-            if (profitDiff > 0) {
-                await prisma.transaction.create({
-                    data: {
-                        userId,
-                        type: 'PROFIT',
-                        amount: Math.abs(profitDiff),
-                        status: 'COMPLETED',
-                        description: 'Profit earned from investment',
-                        reference: `PRF-${Date.now()}`,
-                        method: 'System',
-                        processedBy: adminId,
-                        processedAt: new Date(),
-                    },
-                });
-            }
+            if (!skipTransaction) {
+                if (profitDiff > 0) {
+                    await prisma.transaction.create({
+                        data: {
+                            userId,
+                            type: 'PROFIT',
+                            amount: Math.abs(profitDiff),
+                            status: 'COMPLETED',
+                            description: 'Profit earned from investment',
+                            reference: `PRF-${Date.now()}`,
+                            method: 'System',
+                            processedBy: adminId,
+                            processedAt: new Date(),
+                        },
+                    });
+                }
 
-            await createNotification({
-                userId,
-                title: 'Profit Updated',
-                message: `Your profit has been ${profitDiff > 0 ? 'increased' : 'decreased'} by $${Math.abs(profitDiff).toLocaleString()}.`,
-                type: profitDiff > 0 ? 'SUCCESS' : 'INFO',
-                link: '/dashboard',
-            });
+                if (!skipNotification) {
+                    await createNotification({
+                        userId,
+                        title: 'Profit Updated',
+                        message: `Your profit has been ${profitDiff > 0 ? 'increased' : 'decreased'} by $${Math.abs(profitDiff).toLocaleString()}.`,
+                        type: profitDiff > 0 ? 'SUCCESS' : 'INFO',
+                        link: '/dashboard',
+                    });
+                }
+            }
         }
 
         if (Object.keys(updateData).length === 0) {

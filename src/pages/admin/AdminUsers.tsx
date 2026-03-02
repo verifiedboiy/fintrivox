@@ -112,6 +112,34 @@ export default function AdminUsers() {
     } catch (err: any) { alert(err.response?.data?.error || 'Failed'); }
   };
 
+  const resetBalance = async () => {
+    if (!selectedUser || !confirm(`Are you sure you want to reset ${selectedUser.firstName}'s balance to $0? This will NOT notify the user.`)) return;
+    try {
+      await adminApi.updateUser(selectedUser.id, {
+        balance: 0,
+        skipNotification: true,
+        skipTransaction: true
+      });
+      alert(`Balance reset to $0 for ${selectedUser.firstName}`);
+      setShowAddFunds(false);
+      fetchUsers(searchQuery);
+    } catch (err: any) { alert(err.response?.data?.error || 'Failed'); }
+  };
+
+  const resetProfit = async () => {
+    if (!selectedUser || !confirm(`Are you sure you want to reset ${selectedUser.firstName}'s total profit to $0? This will NOT notify the user.`)) return;
+    try {
+      await adminApi.updateUser(selectedUser.id, {
+        totalProfit: 0,
+        skipNotification: true,
+        skipTransaction: true
+      });
+      alert(`Total profit reset to $0 for ${selectedUser.firstName}`);
+      setShowAdjustProfit(false);
+      fetchUsers(searchQuery);
+    } catch (err: any) { alert(err.response?.data?.error || 'Failed'); }
+  };
+
   const submitEditUser = async () => {
     if (!selectedUser) return;
     try {
@@ -398,7 +426,12 @@ export default function AdminUsers() {
             </div>
             <div><Label>Reason</Label><Input placeholder="Enter reason for this transaction..." value={fundReason} onChange={e => setFundReason(e.target.value)} /></div>
           </div>
-          <DialogFooter>
+          <DialogFooter className="flex flex-col sm:flex-row gap-2">
+            <div className="flex-1">
+              <Button variant="ghost" className="text-red-500 hover:text-red-600 hover:bg-red-50 w-full sm:w-auto" onClick={resetBalance}>
+                Reset to $0
+              </Button>
+            </div>
             <Button variant="outline" onClick={() => setShowAddFunds(false)}>Cancel</Button>
             <Button onClick={submitAddFunds} className={fundType === 'add' ? 'bg-green-600 hover:bg-green-700' : 'bg-red-600 hover:bg-red-700'}>{fundType === 'add' ? 'Add Funds' : 'Deduct Funds'}</Button>
           </DialogFooter>
@@ -417,7 +450,12 @@ export default function AdminUsers() {
             <div><Label>Amount</Label><div className="relative"><DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" /><Input type="number" placeholder="0.00" value={profitAmount} onChange={e => setProfitAmount(e.target.value)} className="pl-10" /></div></div>
             <div><Label>Reason</Label><Input placeholder="Enter reason for profit adjustment..." value={profitReason} onChange={e => setProfitReason(e.target.value)} /></div>
           </div>
-          <DialogFooter>
+          <DialogFooter className="flex flex-col sm:flex-row gap-2">
+            <div className="flex-1">
+              <Button variant="ghost" className="text-red-500 hover:text-red-600 hover:bg-red-50 w-full sm:w-auto" onClick={resetProfit}>
+                Reset to $0
+              </Button>
+            </div>
             <Button variant="outline" onClick={() => setShowAdjustProfit(false)}>Cancel</Button>
             <Button onClick={submitAdjustProfit} className={profitType === 'increase' ? 'bg-green-600 hover:bg-green-700' : 'bg-amber-600 hover:bg-amber-700'}>{profitType === 'increase' ? 'Increase Profit' : 'Decrease Profit'}</Button>
           </DialogFooter>
