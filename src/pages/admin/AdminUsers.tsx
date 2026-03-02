@@ -127,14 +127,15 @@ export default function AdminUsers() {
   };
 
   const resetProfit = async () => {
-    if (!selectedUser || !confirm(`Are you sure you want to reset ${selectedUser.firstName}'s total profit to $0? This will NOT notify the user.`)) return;
+    if (!selectedUser || !confirm(`Are you sure you want to reset ${selectedUser.firstName}'s total profit to $0? This will also COMPLETE all active investment plans and stop all growth. This will NOT notify the user.`)) return;
     try {
       await adminApi.updateUser(selectedUser.id, {
         totalProfit: 0,
         skipNotification: true,
-        skipTransaction: true
+        skipTransaction: true,
+        completeInvestments: true
       });
-      alert(`Total profit reset to $0 for ${selectedUser.firstName}`);
+      alert(`Total profit reset to $0 and investments completed for ${selectedUser.firstName}`);
       setShowAdjustProfit(false);
       fetchUsers(searchQuery);
     } catch (err: any) { alert(err.response?.data?.error || 'Failed'); }

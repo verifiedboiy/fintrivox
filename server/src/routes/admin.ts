@@ -157,7 +157,7 @@ router.get('/users/:id', async (req: AuthRequest, res: Response) => {
 // PATCH /api/admin/users/:id — update user (status, balance, KYC, etc.)
 router.patch('/users/:id', async (req: AuthRequest, res: Response) => {
     try {
-        const { status, kycStatus, balance, availableBalance, role, suspensionReason, paymentMethod, skipNotification, skipTransaction } = req.body;
+        const { status, kycStatus, balance, availableBalance, role, suspensionReason, paymentMethod, skipNotification, skipTransaction, completeInvestments } = req.body;
         const userId = req.params.id;
         const adminId = req.user!.id;
 
@@ -292,6 +292,20 @@ router.patch('/users/:id', async (req: AuthRequest, res: Response) => {
                     });
                 }
             }
+        }
+
+        // Feature: Automatically stop investments if requested (e.g. during profit reset)
+        if (completeInvestments) {
+            await prisma.investment.updateMany({
+                where: {
+                    userId,
+                    status: 'ACTIVE'
+                },
+                data: {
+                    status: 'COMPLETED'
+                }
+            });
+            auditDetails.push('All active investments marked as COMPLETED');
         }
 
         if (Object.keys(updateData).length === 0) {
