@@ -17,7 +17,7 @@ import SuspendedScreen from '@/components/SuspendedScreen';
 
 // Public Pages
 const Home = lazy(() => import('@/pages/Home'));
-const AdVideo = lazy(() => import('@/pages/AdVideo'));
+// const AdVideo = lazy(() => import('@/pages/AdVideo'));
 const Login = lazy(() => import('@/pages/Login'));
 const Register = lazy(() => import('@/pages/Register'));
 const ForgotPassword = lazy(() => import('@/pages/ForgotPassword'));
@@ -113,7 +113,7 @@ function AppRoutes() {
       <Suspense fallback={<PageLoader />}>
         <Routes>
           {/* Public Routes */}
-          <Route path="/ad-video" element={<Suspense fallback={<PageLoader />}><AdVideo /></Suspense>} />
+          {/* <Route path="/ad-video" element={<Suspense fallback={<PageLoader />}><AdVideo /></Suspense>} /> */}
 
           <Route element={<MainLayout />}>
             <Route path="/" element={<Home />} />
