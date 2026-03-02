@@ -48,7 +48,7 @@ interface AuthContextValue {
   showTimeoutWarning: boolean;
   remainingTime: number;
   extendSession: () => void;
-  login: (email: string, password: string) => Promise<{ success: boolean; requires2FA?: boolean; requiresEmailVerification?: boolean; tempToken?: string }>;
+  login: (email: string, password: string) => Promise<{ success: boolean; requires2FA?: boolean; requiresEmailVerification?: boolean; tempToken?: string; error?: string }>;
   verify2FA: (code: string) => Promise<boolean>;
   adminLogin: (email: string, password: string) => Promise<{ success: boolean; requires2FA?: boolean; requiresEmailVerification?: boolean; tempToken?: string }>;
   logout: () => void;
@@ -209,9 +209,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       completeLogin(data);
       return { success: true };
-    } catch (err) {
+    } catch (err: any) {
       console.error('Login error:', err);
-      return { success: false };
+      const errorMsg = err.response?.data?.error || 'An error occurred. Please try again later.';
+      return { success: false, error: errorMsg };
     }
   };
 

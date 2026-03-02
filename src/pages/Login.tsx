@@ -56,7 +56,7 @@ export default function Login() {
           navigate('/dashboard');
         }
       } else {
-        setError('Invalid email or password. Please try again.');
+        setError(result.error || 'Invalid email or password. Please try again.');
       }
     } catch (err) {
       setError('An error occurred. Please try again later.');

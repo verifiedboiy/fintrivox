@@ -49,15 +49,30 @@ export default function Notifications() {
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">Notifications</h1>
-          <p className="text-gray-500">{unreadCount} unread notifications</p>
-        </div>
-        {unreadCount > 0 && (
-          <Button variant="outline" onClick={handleMarkAllRead}>
-            <CheckCheck className="w-4 h-4 mr-2" /> Mark All Read
+        <div className="flex items-center gap-4">
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => window.history.back()}
+            className="lg:hidden"
+          >
+            <X className="w-5 h-5" />
           </Button>
-        )}
+          <div>
+            <h1 className="text-2xl font-bold text-gray-900">Notifications</h1>
+            <p className="text-gray-500">{unreadCount} unread notifications</p>
+          </div>
+        </div>
+        <div className="flex gap-2">
+          <Button variant="ghost" size="sm" onClick={() => window.history.back()} className="hidden lg:flex">
+            <X className="w-4 h-4 mr-2" /> Close
+          </Button>
+          {unreadCount > 0 && (
+            <Button variant="outline" onClick={handleMarkAllRead}>
+              <CheckCheck className="w-4 h-4 mr-2" /> Mark All Read
+            </Button>
+          )}
+        </div>
       </div>
 
       <div className="space-y-3">
