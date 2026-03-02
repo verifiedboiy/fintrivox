@@ -75,6 +75,7 @@ export default function Dashboard() {
     activeInvestments: 0, pendingTransactions: 0,
   });
   const [recentTransactions, setRecentTransactions] = useState<any[]>([]);
+  const [allInvestments, setAllInvestments] = useState<any[]>([]);
   const [activeInvestments, setActiveInvestments] = useState<any[]>([]);
   const [unreadNotifications, setUnreadNotifications] = useState<any[]>([]);
 
@@ -113,8 +114,10 @@ export default function Dashboard() {
         }
 
         if (invRes.status === 'fulfilled') {
+          const fetchedInvestments = invRes.value.data.investments || [];
+          setAllInvestments(fetchedInvestments);
           setActiveInvestments(
-            invRes.value.data.investments
+            fetchedInvestments
               .filter((inv: any) => inv.status === 'ACTIVE')
               .slice(0, 3)
               .map((inv: any) => ({
@@ -154,19 +157,32 @@ export default function Dashboard() {
     fetchDashboardData();
   }, [user]);
 
-  // Live profit counter — tiny increments every second
+  // Real-time profit ticker for visual growth effect
   useEffect(() => {
-    if (!stats.totalProfit || stats.totalProfit <= 0) return;
-    // Approximate: profit grows ~0.5% daily → per second = 0.005 / 86400
-    const perSecondRate = 0.005 / 86400;
+    if (!stats.investedAmount || stats.investedAmount <= 0) return;
+
+    // Calculate total daily growth based on ALL active investments
+    const activeInvs = allInvestments.filter((inv: any) => inv.status === 'ACTIVE');
+    const totalDailyProfit = activeInvs.reduce((sum, inv) => {
+      return sum + (inv.amount * (inv.dailyProfitRate || 0) / 100);
+    }, 0);
+
+    if (totalDailyProfit <= 0) return;
+
+    // Growth per millisecond (total daily / 86,400,000 ms per day)
+    const perMsRate = totalDailyProfit / (24 * 60 * 60 * 1000);
+    const tickInterval = 100; // Update every 100ms for smooth 'live' feel
+    const growthPerTick = perMsRate * tickInterval;
+
     const interval = setInterval(() => {
       setStats(s => ({
         ...s,
-        totalProfit: s.totalProfit + (s.investedAmount * perSecondRate),
+        totalProfit: s.totalProfit + growthPerTick,
       }));
-    }, 1000);
+    }, tickInterval);
+
     return () => clearInterval(interval);
-  }, [stats.investedAmount]);
+  }, [stats.investedAmount, activeInvestments]);
 
   if (!user) return null;
 
@@ -305,14 +321,25 @@ export default function Dashboard() {
           color="bg-purple-500"
         />
 
-        <StatCard
-          title="Total Profit"
-          value={`$${stats.totalProfit.toLocaleString()}`}
-          change={`+${stats.profitChange30d}% (30d)`}
-          changeType="positive"
-          icon={TrendingUp}
-          color="bg-amber-500"
-        />
+        <Card className="hover:shadow-lg transition-shadow border-green-100 bg-green-50/20">
+          <CardContent className="p-6">
+            <div className="flex items-start justify-between">
+              <div>
+                <p className="text-sm text-green-700 font-semibold mb-1">Live Profit Accumulation</p>
+                <h3 className="text-2xl font-black text-green-600 tracking-tighter font-mono">
+                  ${stats.totalProfit.toLocaleString(undefined, { minimumFractionDigits: 6, maximumFractionDigits: 6 })}
+                </h3>
+                <div className="flex items-center gap-1 mt-2 text-xs text-green-600 font-bold uppercase tracking-wider">
+                  <TrendingUp className="w-4 h-4 mr-1 animate-bounce" />
+                  <span>Real-time Earnings</span>
+                </div>
+              </div>
+              <div className="w-12 h-12 bg-green-500 rounded-xl flex items-center justify-center shadow-lg shadow-green-200">
+                <Activity className="w-6 h-6 text-white" />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
       </div>
 
       {/* Charts Section */}

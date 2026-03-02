@@ -14,6 +14,7 @@ import adminRoutes from './routes/admin.js';
 import supportRoutes from './routes/support.js';
 import kycRoutes from './routes/kyc.js';
 import prisma from './config/db.js';
+import { startProfitService } from './services/profit.service.js';
 
 const app = express();
 
@@ -135,4 +136,7 @@ app.listen(env.PORT, () => {
     console.log(`\n🚀 Fintrivox API running at http://localhost:${env.PORT}`);
     console.log(`   Environment: ${env.NODE_ENV}`);
     console.log(`   Frontend:    ${env.FRONTEND_URL}\n`);
+
+    // Start Profit Processing Engine
+    startProfitService();
 });

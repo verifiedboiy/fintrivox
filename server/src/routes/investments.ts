@@ -65,7 +65,7 @@ router.post('/', validate(investSchema), async (req: AuthRequest, res: Response)
         }
 
         const endDate = new Date(Date.now() + plan.duration * 24 * 60 * 60 * 1000);
-        const nextProfitDate = new Date(Date.now() + 24 * 60 * 60 * 1000);
+        const nextProfitDate = new Date(Date.now() + 1 * 60 * 60 * 1000); // 1 hour for initial profit
 
         // Create investment
         const investment = await prisma.investment.create({
