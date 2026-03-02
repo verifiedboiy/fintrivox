@@ -64,7 +64,12 @@ export default function MainLayout() {
 
             {/* Desktop Navigation */}
             <div className="hidden lg:flex items-center gap-1">
-              {navLinks.map((link) => (
+              {navLinks.filter(link => {
+                // Remove 'Privacy' from the header menu unless it's the home page
+                // And remove it from 'user' (Dashboard) was already done in DashboardLayout
+                if (link.name === 'Privacy' && location.pathname !== '/') return false;
+                return true;
+              }).map((link) => (
                 link.hasDropdown ? (
                   <DropdownMenu key={link.name}>
                     <DropdownMenuTrigger asChild>
@@ -146,7 +151,7 @@ export default function MainLayout() {
         {mobileMenuOpen && (
           <div className="lg:hidden bg-white border-t border-gray-100">
             <div className="px-4 py-4 space-y-2">
-              {navLinks.map((link) => (
+              {navLinks.filter(l => l.name !== 'Privacy' || location.pathname === '/').map((link) => (
                 <Link
                   key={link.name}
                   to={link.href}
