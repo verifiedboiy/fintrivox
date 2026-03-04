@@ -357,6 +357,122 @@ export default function Home() {
         </div>
       </section>
 
+      {/* How It Works - Illustrated Section */}
+      <section className="py-24 bg-gradient-to-b from-white to-blue-50/40 overflow-hidden">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center max-w-3xl mx-auto mb-20">
+            <span className="inline-block text-blue-600 font-semibold text-sm uppercase tracking-widest mb-3">Simple & Transparent</span>
+            <h2 className="text-3xl lg:text-4xl font-bold text-gray-900 mb-4">
+              How Fintrivox Works
+            </h2>
+            <p className="text-lg text-gray-600">
+              Start earning in three simple steps — no experience needed. Our platform handles the complexity so you can focus on growing your wealth.
+            </p>
+          </div>
+
+          <div className="space-y-24">
+            {/* Step 1 */}
+            <div className="grid lg:grid-cols-2 gap-12 items-center">
+              <div className="relative group">
+                <div className="absolute -inset-4 bg-gradient-to-r from-blue-100 to-indigo-100 rounded-3xl opacity-0 group-hover:opacity-100 transition-all duration-500 blur-xl" />
+                <div className="relative bg-white rounded-3xl shadow-xl overflow-hidden border border-gray-100 group-hover:shadow-2xl group-hover:-translate-y-1 transition-all duration-500">
+                  <img
+                    src="/illus1.png"
+                    alt="Start investing online with Fintrivox"
+                    className="w-full h-auto object-contain p-6"
+                  />
+                </div>
+              </div>
+              <div className="lg:pl-8">
+                <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-gradient-to-br from-blue-500 to-indigo-600 text-white text-2xl font-bold mb-6 shadow-lg shadow-blue-200">
+                  1
+                </div>
+                <h3 className="text-2xl lg:text-3xl font-bold text-gray-900 mb-4">
+                  Create Your Account & Deposit
+                </h3>
+                <p className="text-gray-600 leading-relaxed mb-6">
+                  Sign up in minutes and fund your account securely. Fintrivox supports multiple deposit methods — crypto, bank transfer, and more — so you can get started without friction.
+                </p>
+                <ul className="space-y-3">
+                  {['Instant account setup', 'Multiple funding options', 'Secure & encrypted transactions'].map((item) => (
+                    <li key={item} className="flex items-center gap-3 text-gray-700">
+                      <CheckCircle className="w-5 h-5 text-green-500 shrink-0" />
+                      {item}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </div>
+
+            {/* Step 2 */}
+            <div className="grid lg:grid-cols-2 gap-12 items-center">
+              <div className="lg:order-2 relative group">
+                <div className="absolute -inset-4 bg-gradient-to-r from-amber-100 to-orange-100 rounded-3xl opacity-0 group-hover:opacity-100 transition-all duration-500 blur-xl" />
+                <div className="relative bg-white rounded-3xl shadow-xl overflow-hidden border border-gray-100 group-hover:shadow-2xl group-hover:-translate-y-1 transition-all duration-500">
+                  <img
+                    src="/illus2.png"
+                    alt="Expert-managed investment strategies"
+                    className="w-full h-auto object-contain p-6"
+                  />
+                </div>
+              </div>
+              <div className="lg:order-1 lg:pr-8">
+                <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-gradient-to-br from-amber-500 to-orange-500 text-white text-2xl font-bold mb-6 shadow-lg shadow-amber-200">
+                  2
+                </div>
+                <h3 className="text-2xl lg:text-3xl font-bold text-gray-900 mb-4">
+                  Choose Your Investment Plan
+                </h3>
+                <p className="text-gray-600 leading-relaxed mb-6">
+                  Our expert analysts and AI-driven strategies work around the clock across global markets. Pick a plan that matches your risk appetite and financial goals — we take care of the rest.
+                </p>
+                <ul className="space-y-3">
+                  {['AI-powered portfolio management', 'Real-time market analysis', 'Diversified global exposure'].map((item) => (
+                    <li key={item} className="flex items-center gap-3 text-gray-700">
+                      <CheckCircle className="w-5 h-5 text-green-500 shrink-0" />
+                      {item}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </div>
+
+            {/* Step 3 */}
+            <div className="grid lg:grid-cols-2 gap-12 items-center">
+              <div className="relative group">
+                <div className="absolute -inset-4 bg-gradient-to-r from-green-100 to-emerald-100 rounded-3xl opacity-0 group-hover:opacity-100 transition-all duration-500 blur-xl" />
+                <div className="relative bg-white rounded-3xl shadow-xl overflow-hidden border border-gray-100 group-hover:shadow-2xl group-hover:-translate-y-1 transition-all duration-500">
+                  <img
+                    src="/illus3.png"
+                    alt="Watch your wealth grow with Fintrivox"
+                    className="w-full h-auto object-contain p-6"
+                  />
+                </div>
+              </div>
+              <div className="lg:pl-8">
+                <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-gradient-to-br from-green-500 to-emerald-600 text-white text-2xl font-bold mb-6 shadow-lg shadow-green-200">
+                  3
+                </div>
+                <h3 className="text-2xl lg:text-3xl font-bold text-gray-900 mb-4">
+                  Watch Your Wealth Grow
+                </h3>
+                <p className="text-gray-600 leading-relaxed mb-6">
+                  Track your returns in real time on your dashboard. Profits are credited daily, and you can withdraw anytime. Your financial growth is always transparent and in your control.
+                </p>
+                <ul className="space-y-3">
+                  {['Daily profit crediting', 'Instant withdrawal access', 'Full transparency & reporting'].map((item) => (
+                    <li key={item} className="flex items-center gap-3 text-gray-700">
+                      <CheckCircle className="w-5 h-5 text-green-500 shrink-0" />
+                      {item}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* Investment Plans */}
       <section className="py-24 bg-gray-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
