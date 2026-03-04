@@ -70,7 +70,11 @@ function PageLoader() {
 
 // Protected Route Component
 function ProtectedRoute({ children, requireAdmin = false }: { children: React.ReactNode; requireAdmin?: boolean }) {
-  const { isAuthenticated, isAdmin } = useAuth();
+  const { isAuthenticated, isAdmin, loading } = useAuth();
+
+  if (loading) {
+    return <PageLoader />;
+  }
 
   if (!isAuthenticated) {
     return <Navigate to="/login" replace />;
@@ -85,7 +89,11 @@ function ProtectedRoute({ children, requireAdmin = false }: { children: React.Re
 
 // Public Route - redirects to dashboard if already logged in
 function PublicRoute({ children }: { children: React.ReactNode }) {
-  const { isAuthenticated, isAdmin } = useAuth();
+  const { isAuthenticated, isAdmin, loading } = useAuth();
+
+  if (loading) {
+    return <PageLoader />;
+  }
 
   if (isAuthenticated) {
     return <Navigate to={isAdmin ? '/admin' : '/dashboard'} replace />;
