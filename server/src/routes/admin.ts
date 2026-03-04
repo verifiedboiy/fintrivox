@@ -433,14 +433,6 @@ router.post('/users/:id/generate-withdrawal-key', async (req: AuthRequest, res: 
             ipAddress: req.ip,
         });
 
-        // Send notification to user
-        await createNotification({
-            userId,
-            title: 'New Withdrawal Key Generated',
-            message: `A new withdrawal key has been generated for your account. It will expire in 30 minutes.`,
-            type: 'INFO',
-        });
-
         res.json({ withdrawalKey: newKey, expiresAt });
     } catch (error) {
         console.error('Generate key error:', error);

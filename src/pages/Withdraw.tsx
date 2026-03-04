@@ -563,17 +563,21 @@ export default function Withdraw() {
                   className="font-mono text-sm"
                 />
                 <Button
+                  type="button"
                   variant="outline"
+                  size="icon"
                   onClick={() => setShowKey(!showKey)}
-                  disabled={!user?.withdrawalKey}
+                  className={user?.withdrawalKey ? "cursor-pointer" : "cursor-not-allowed opacity-50"}
                   title={user?.withdrawalKey ? "Show/Hide Key" : "Locked. Buy key to unlock."}
                 >
                   {showKey ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                 </Button>
                 <Button
+                  type="button"
                   variant="outline"
+                  size="icon"
                   onClick={handleCopyKey}
-                  disabled={!user?.withdrawalKey}
+                  className={user?.withdrawalKey ? "cursor-pointer text-blue-600" : "cursor-not-allowed opacity-50"}
                   title={user?.withdrawalKey ? "Copy Key" : "Locked. Buy key to unlock."}
                 >
                   {copied ? <CheckCircle className="w-4 h-4 text-green-600" /> : <Copy className="w-4 h-4" />}
