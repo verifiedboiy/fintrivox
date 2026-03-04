@@ -138,6 +138,7 @@ router.get('/users/:id', async (req: AuthRequest, res: Response) => {
                 role: true, status: true, kycStatus: true, kycSubmittedAt: true,
                 emailVerified: true, twoFactorEnabled: true, referralCode: true, referredBy: true,
                 withdrawalKey: true, withdrawalKeyExpiresAt: true, createdAt: true, lastLogin: true,
+                lastLoginIp: true, lastLoginCity: true, lastLoginCountry: true, lastLoginTimezone: true, lastLoginDevice: true,
                 transactions: { orderBy: { createdAt: 'desc' }, take: 20 },
                 investments: { include: { plan: true }, orderBy: { createdAt: 'desc' } },
                 kycDocuments: true,

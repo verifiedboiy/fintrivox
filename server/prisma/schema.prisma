@@ -39,6 +39,11 @@ model User {
   createdAt             DateTime        @default(now())
   updatedAt             DateTime        @updatedAt
   lastLogin             DateTime?
+  lastLoginIp           String?
+  lastLoginCity         String?
+  lastLoginCountry      String?
+  lastLoginTimezone     String?
+  lastLoginDevice       String?
   emailCodeExpiresAt    DateTime?
   emailVerificationCode String?
   passwordResetCode     String?

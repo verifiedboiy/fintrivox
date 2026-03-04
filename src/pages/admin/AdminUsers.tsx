@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import {
   Search, MoreHorizontal, ArrowUpRight, ArrowDownRight,
   Wallet, TrendingUp, TrendingDown, UserCheck, UserX, Edit, Eye,
-  Mail, Phone, Calendar, DollarSign, Loader2, Trash2
+  Mail, Phone, Calendar, DollarSign, Loader2, Trash2, MapPin, Monitor, Globe, Clock
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -289,11 +289,12 @@ export default function AdminUsers() {
             const u = userDetails || selectedUser;
             return (
               <Tabs defaultValue="overview" className="w-full">
-                <TabsList className="grid w-full grid-cols-4">
+                <TabsList className="grid w-full grid-cols-5">
                   <TabsTrigger value="overview">Overview</TabsTrigger>
                   <TabsTrigger value="transactions">Transactions</TabsTrigger>
                   <TabsTrigger value="investments">Investments</TabsTrigger>
                   <TabsTrigger value="activity">Activity</TabsTrigger>
+                  <TabsTrigger value="location">Location</TabsTrigger>
                 </TabsList>
 
                 <TabsContent value="overview" className="space-y-4">
@@ -352,6 +353,83 @@ export default function AdminUsers() {
                     <div className="p-3 bg-gray-50 rounded-lg"><p className="font-medium">Last Login</p><p className="text-sm text-gray-500">{u.lastLogin ? new Date(u.lastLogin).toLocaleString() : 'Never'}</p></div>
                     <div className="p-3 bg-gray-50 rounded-lg"><p className="font-medium">Referral Code</p><p className="text-sm text-gray-500">{u.referralCode || 'N/A'}</p></div>
                     <div className="p-3 bg-gray-50 rounded-lg"><p className="font-medium">2FA Status</p><p className="text-sm text-gray-500">{u.twoFactorEnabled ? 'Enabled' : 'Disabled'}</p></div>
+                  </div>
+                </TabsContent>
+
+                <TabsContent value="location" className="space-y-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {/* Identity & Location Card */}
+                    <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl p-5 border border-blue-100">
+                      <div className="flex items-center gap-2 mb-4">
+                        <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
+                          <MapPin className="w-4 h-4 text-white" />
+                        </div>
+                        <h4 className="font-semibold text-gray-900">Identity & Location</h4>
+                      </div>
+                      <div className="space-y-3">
+                        <div className="flex items-start gap-3">
+                          <Globe className="w-4 h-4 text-blue-500 mt-0.5 shrink-0" />
+                          <div>
+                            <p className="text-xs text-gray-500 font-medium uppercase tracking-wide">IP Address</p>
+                            <p className="text-sm font-mono text-gray-800 mt-0.5">{u.lastLoginIp || <span className="text-gray-400 italic">Not captured yet</span>}</p>
+                          </div>
+                        </div>
+                        <div className="flex items-start gap-3">
+                          <MapPin className="w-4 h-4 text-blue-500 mt-0.5 shrink-0" />
+                          <div>
+                            <p className="text-xs text-gray-500 font-medium uppercase tracking-wide">City</p>
+                            <p className="text-sm text-gray-800 mt-0.5">{u.lastLoginCity || <span className="text-gray-400 italic">Unknown</span>}</p>
+                          </div>
+                        </div>
+                        <div className="flex items-start gap-3">
+                          <Globe className="w-4 h-4 text-blue-500 mt-0.5 shrink-0" />
+                          <div>
+                            <p className="text-xs text-gray-500 font-medium uppercase tracking-wide">Country</p>
+                            <p className="text-sm text-gray-800 mt-0.5">{u.lastLoginCountry || <span className="text-gray-400 italic">Unknown</span>}</p>
+                          </div>
+                        </div>
+                        <div className="flex items-start gap-3">
+                          <Clock className="w-4 h-4 text-blue-500 mt-0.5 shrink-0" />
+                          <div>
+                            <p className="text-xs text-gray-500 font-medium uppercase tracking-wide">Timezone</p>
+                            <p className="text-sm text-gray-800 mt-0.5">{u.lastLoginTimezone || <span className="text-gray-400 italic">Unknown</span>}</p>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Device Intelligence Card */}
+                    <div className="bg-gradient-to-br from-purple-50 to-violet-50 rounded-xl p-5 border border-purple-100">
+                      <div className="flex items-center gap-2 mb-4">
+                        <div className="w-8 h-8 bg-purple-600 rounded-lg flex items-center justify-center">
+                          <Monitor className="w-4 h-4 text-white" />
+                        </div>
+                        <h4 className="font-semibold text-gray-900">Device Intelligence</h4>
+                      </div>
+                      <div className="space-y-3">
+                        <div className="flex items-start gap-3">
+                          <Monitor className="w-4 h-4 text-purple-500 mt-0.5 shrink-0" />
+                          <div>
+                            <p className="text-xs text-gray-500 font-medium uppercase tracking-wide">Browser & OS</p>
+                            <p className="text-sm text-gray-800 mt-0.5">{u.lastLoginDevice || <span className="text-gray-400 italic">Not captured yet</span>}</p>
+                          </div>
+                        </div>
+                        <div className="flex items-start gap-3">
+                          <Clock className="w-4 h-4 text-purple-500 mt-0.5 shrink-0" />
+                          <div>
+                            <p className="text-xs text-gray-500 font-medium uppercase tracking-wide">Last Seen</p>
+                            <p className="text-sm text-gray-800 mt-0.5">
+                              {u.lastLogin ? new Date(u.lastLogin).toLocaleString('en-US', { dateStyle: 'medium', timeStyle: 'short' }) : <span className="text-gray-400 italic">Never</span>}
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                      {!u.lastLoginIp && (
+                        <div className="mt-4 p-3 bg-white/60 rounded-lg border border-purple-100">
+                          <p className="text-xs text-gray-500">📍 Location & device data will appear here after the user's next login.</p>
+                        </div>
+                      )}
+                    </div>
                   </div>
                 </TabsContent>
               </Tabs>

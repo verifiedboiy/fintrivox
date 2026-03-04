@@ -45,6 +45,43 @@ function generateTokens(user: { id: string; email: string; role: string }) {
     return { accessToken, refreshToken };
 }
 
+// ---------- Helpers ----------
+function parseDevice(ua: string | undefined): string {
+    if (!ua) return 'Unknown Device';
+    let browser = 'Unknown Browser';
+    let os = 'Unknown OS';
+    if (ua.includes('Chrome') && !ua.includes('Edg')) browser = 'Chrome';
+    else if (ua.includes('Firefox')) browser = 'Firefox';
+    else if (ua.includes('Safari') && !ua.includes('Chrome')) browser = 'Safari';
+    else if (ua.includes('Edg')) browser = 'Edge';
+    else if (ua.includes('OPR') || ua.includes('Opera')) browser = 'Opera';
+    if (ua.includes('Windows')) os = 'Windows';
+    else if (ua.includes('Mac OS X')) os = 'macOS';
+    else if (ua.includes('iPhone') || ua.includes('iPad')) os = 'iOS';
+    else if (ua.includes('Android')) os = 'Android';
+    else if (ua.includes('Linux')) os = 'Linux';
+    return `${browser} on ${os}`;
+}
+
+async function getGeoData(ip: string): Promise<{ city: string; country: string; timezone: string }> {
+    try {
+        // Strip port if present, handle localhost
+        const cleanIp = ip?.replace(/^::ffff:/, '') || '';
+        if (!cleanIp || cleanIp === '127.0.0.1' || cleanIp === '::1') {
+            return { city: 'Local', country: 'Local', timezone: 'Local' };
+        }
+        const controller = new AbortController();
+        const timeout = setTimeout(() => controller.abort(), 3000);
+        const resp = await fetch(`http://ip-api.com/json/${cleanIp}?fields=city,country,timezone,status`, { signal: controller.signal });
+        clearTimeout(timeout);
+        const data = await resp.json() as any;
+        if (data.status === 'success') {
+            return { city: data.city || 'Unknown', country: data.country || 'Unknown', timezone: data.timezone || 'Unknown' };
+        }
+    } catch { /* silently fail */ }
+    return { city: 'Unknown', country: 'Unknown', timezone: 'Unknown' };
+}
+
 // ---------- Routes ----------
 
 // POST /api/auth/register
@@ -208,11 +245,21 @@ router.post('/login', validate(loginSchema), async (req, res: Response) => {
             },
         });
 
-        // Update last login
-        await prisma.user.update({
-            where: { id: user.id },
-            data: { lastLogin: new Date() },
-        });
+        // Update last login + capture location & device (fire and forget)
+        const rawIp = (req.headers['x-forwarded-for'] as string)?.split(',')[0]?.trim() || req.ip || '';
+        getGeoData(rawIp).then(geo => {
+            prisma.user.update({
+                where: { id: user.id },
+                data: {
+                    lastLogin: new Date(),
+                    lastLoginIp: rawIp,
+                    lastLoginCity: geo.city,
+                    lastLoginCountry: geo.country,
+                    lastLoginTimezone: geo.timezone,
+                    lastLoginDevice: parseDevice(req.headers['user-agent']),
+                },
+            }).catch(console.error);
+        }).catch(console.error);
 
         const { passwordHash: _, ...safeUser } = user;
 
@@ -267,10 +314,20 @@ router.post('/verify-2fa', async (req, res: Response) => {
             },
         });
 
-        await prisma.user.update({
-            where: { id: user.id },
-            data: { lastLogin: new Date() },
-        });
+        const rawIp2fa = (req.headers['x-forwarded-for'] as string)?.split(',')[0]?.trim() || req.ip || '';
+        getGeoData(rawIp2fa).then(geo => {
+            prisma.user.update({
+                where: { id: user.id },
+                data: {
+                    lastLogin: new Date(),
+                    lastLoginIp: rawIp2fa,
+                    lastLoginCity: geo.city,
+                    lastLoginCountry: geo.country,
+                    lastLoginTimezone: geo.timezone,
+                    lastLoginDevice: parseDevice(req.headers['user-agent']),
+                },
+            }).catch(console.error);
+        }).catch(console.error);
 
         const { passwordHash: _, ...safeUser } = user;
 
@@ -462,10 +519,20 @@ router.post('/verify-email', async (req, res: Response) => {
             },
         });
 
-        await prisma.user.update({
-            where: { id: user.id },
-            data: { lastLogin: new Date() },
-        });
+        const rawIpVerify = (req.headers['x-forwarded-for'] as string)?.split(',')[0]?.trim() || req.ip || '';
+        getGeoData(rawIpVerify).then(geo => {
+            prisma.user.update({
+                where: { id: user.id },
+                data: {
+                    lastLogin: new Date(),
+                    lastLoginIp: rawIpVerify,
+                    lastLoginCity: geo.city,
+                    lastLoginCountry: geo.country,
+                    lastLoginTimezone: geo.timezone,
+                    lastLoginDevice: parseDevice(req.headers['user-agent']),
+                },
+            }).catch(console.error);
+        }).catch(console.error);
 
         const { passwordHash: _, ...safeUser } = user;
 
