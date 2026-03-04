@@ -14,7 +14,8 @@ import {
   Eye,
   EyeOff,
   ChevronRight,
-  ShieldAlert
+  ShieldAlert,
+  Loader2
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -24,7 +25,7 @@ import { Label } from '@/components/ui/label';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
 import { useAuth } from '@/contexts/AuthContext';
-import { paymentMethodApi } from '@/services/api';
+import { paymentMethodApi, withdrawalApi } from '@/services/api';
 
 const DEFAULT_WITHDRAW_METHODS = [
   { id: 'BTC', name: 'Bitcoin', type: 'crypto', icon: 'bitcoin', minAmount: 50, maxAmount: 1000000, fee: 0, feeType: 'percentage', processingTime: '10-30 mins', status: 'active' },
@@ -108,13 +109,33 @@ export default function Withdraw() {
     setCountdown(5);
   };
 
-  const handleVerifyKey = () => {
-    // In a real app, verify the withdrawal key
-    if (withdrawalKey && withdrawalKey === user?.withdrawalKey) {
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const handleVerifyKey = async () => {
+    if (!selectedMethod || !amount || !withdrawalKey) return;
+
+    setIsSubmitting(true);
+    setShowKeyError(false);
+
+    try {
+      const { data } = await withdrawalApi.create({
+        amount: parseFloat(amount),
+        method: selectedPaymentMethod?.name || '',
+        withdrawalKey: withdrawalKey.trim(),
+        walletAddress: withdrawalAddress
+      });
+
       setStep('confirm');
-    } else {
-      setShowKeyError(true);
-      setTimeout(() => setShowKeyError(false), 5000);
+    } catch (err: any) {
+      console.error('Withdrawal error:', err);
+      const errorMsg = err.response?.data?.error || 'Failed to process withdrawal';
+      if (errorMsg.toLowerCase().includes('key')) {
+        setShowKeyError(true);
+      } else {
+        alert(errorMsg);
+      }
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -514,10 +535,14 @@ export default function Withdraw() {
               <Button
                 className="flex-1 bg-green-600 hover:bg-green-700 h-12"
                 onClick={handleVerifyKey}
-                disabled={!withdrawalKey}
+                disabled={!withdrawalKey || isSubmitting}
               >
-                <Lock className="w-4 h-4 mr-2" />
-                Verify & Withdraw
+                {isSubmitting ? (
+                  <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                ) : (
+                  <Lock className="w-4 h-4 mr-2" />
+                )}
+                {isSubmitting ? 'Processing...' : 'Verify & Withdraw'}
               </Button>
             </div>
           </CardContent>

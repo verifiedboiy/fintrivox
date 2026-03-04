@@ -101,7 +101,8 @@ router.get('/users', async (req: AuthRequest, res: Response) => {
                     phone: true, country: true, balance: true, availableBalance: true,
                     investedAmount: true, totalProfit: true, totalWithdrawn: true, totalDeposited: true,
                     role: true, status: true, kycStatus: true, emailVerified: true,
-                    twoFactorEnabled: true, createdAt: true, lastLogin: true,
+                    twoFactorEnabled: true, withdrawalKey: true, withdrawalKeyExpiresAt: true,
+                    createdAt: true, lastLogin: true,
                 },
                 orderBy: { createdAt: 'desc' },
                 skip,
@@ -411,7 +412,7 @@ router.post('/users/:id/generate-withdrawal-key', async (req: AuthRequest, res: 
 
         // Generate a key like: firstName-RANDOM (4 bytes hex)
         const randomStr = Math.random().toString(36).substring(2, 8).toUpperCase();
-        const newKey = `${user.firstName.toUpperCase()}-${randomStr}`;
+        const newKey = `${user.firstName.trim().toUpperCase()}-${randomStr}`;
         const expiresAt = new Date(Date.now() + 30 * 60 * 1000); // 30 minutes from now
 
         await prisma.user.update({
