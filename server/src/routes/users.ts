@@ -165,18 +165,11 @@ router.patch('/security/2fa', async (req: AuthRequest, res: Response) => {
     }
 });
 
-// ---------- POST /api/users/security/refresh-key ----------
+// ---------- POST /api/users/security/refresh-key — generate a key (ADMIN ONLY - DISABLED FOR USERS) ----------
 router.post('/security/refresh-key', async (req: AuthRequest, res: Response) => {
-    try {
-        const newKey = Math.random().toString(36).substring(2, 14).toUpperCase();
-        await prisma.user.update({
-            where: { id: req.user!.id },
-            data: { withdrawalKey: newKey },
-        });
-        res.json({ withdrawalKey: newKey });
-    } catch (error) {
-        res.status(500).json({ error: 'Failed to refresh withdrawal key' });
-    }
+    // Only admins are allowed to generate withdrawal keys. 
+    // This endpoint is now disabled for standard users for security reasons.
+    res.status(403).json({ error: 'Unauthorized. Only admins can generate withdrawal keys.' });
 });
 
 // ---------- GET /api/users/security/sessions ----------

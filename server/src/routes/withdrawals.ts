@@ -36,9 +36,14 @@ router.post('/', validate(withdrawSchema), async (req: AuthRequest, res: Respons
             return;
         }
 
-        // Check that user can only withdraw from profit
+        // Check that user can only withdraw from profit and has sufficient available balance
         if (amount > user.totalProfit) {
             res.status(400).json({ error: 'You can only withdraw from your earned profit. Insufficient profit balance.' });
+            return;
+        }
+
+        if (amount > user.availableBalance) {
+            res.status(400).json({ error: 'Insufficient available balance to complete this withdrawal.' });
             return;
         }
 

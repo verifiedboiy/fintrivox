@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Shield, Lock, Key, Smartphone, Eye, EyeOff, RefreshCw, CheckCircle, Smartphone as DeviceIcon } from 'lucide-react';
+import { Shield, Lock, Key, Smartphone, Eye, EyeOff, CheckCircle, Smartphone as DeviceIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -68,17 +68,6 @@ export default function Security() {
     }
   };
 
-  const handleRefreshKey = async () => {
-    if (!confirm('Are you sure you want to regenerate your withdrawal key? This will void your old key.')) return;
-
-    try {
-      await userApi.refreshWithdrawalKey();
-      await refreshUser();
-      alert('Withdrawal key regenerated successfully.');
-    } catch (error) {
-      alert('Failed to refresh withdrawal key.');
-    }
-  };
 
   const handleTerminateSession = async (sessionId: string) => {
     if (!confirm('Are you sure you want to terminate this session? The device will be logged out.')) return;
@@ -212,9 +201,6 @@ export default function Security() {
             />
             <Button variant="outline" onClick={() => setShowWithdrawalKey(!showWithdrawalKey)}>
               {showWithdrawalKey ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-            </Button>
-            <Button variant="outline" onClick={handleRefreshKey}>
-              <RefreshCw className="w-4 h-4" />
             </Button>
           </div>
         </CardContent>
