@@ -533,6 +533,8 @@ router.post('/transactions/:id/approve', async (req: AuthRequest, res: Response)
                 where: { id: transaction.userId },
                 data: {
                     balance: { decrement: transaction.amount },
+                    availableBalance: { decrement: 0 }, // Just to ensure it's not incorrectly incremented
+                    totalProfit: { decrement: transaction.amount },
                     totalWithdrawn: { increment: transaction.amount },
                 },
             });
@@ -540,7 +542,7 @@ router.post('/transactions/:id/approve', async (req: AuthRequest, res: Response)
             await createNotification({
                 userId: transaction.userId,
                 title: 'Withdrawal Approved',
-                message: `Your withdrawal of $${transaction.amount.toLocaleString()} has been approved and processed.`,
+                message: `Your withdrawal of $${transaction.amount.toLocaleString()} has been approved and processed by the team.`,
                 type: 'SUCCESS',
                 link: '/dashboard/transactions',
             });

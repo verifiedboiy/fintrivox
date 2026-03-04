@@ -25,7 +25,7 @@ import { Label } from '@/components/ui/label';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
 import { useAuth } from '@/contexts/AuthContext';
-import { paymentMethodApi, withdrawalApi } from '@/services/api';
+import { paymentMethodApi, withdrawalApi, transactionApi } from '@/services/api';
 
 const DEFAULT_WITHDRAW_METHODS = [
   { id: 'BTC', name: 'Bitcoin', type: 'crypto', icon: 'bitcoin', minAmount: 50, maxAmount: 1000000, fee: 0, feeType: 'percentage', processingTime: '10-30 mins', status: 'active' },
@@ -50,6 +50,8 @@ export default function Withdraw() {
   const [isCountingDown, setIsCountingDown] = useState(false);
   const [countdown, setCountdown] = useState(5);
 
+  const [pendingWithdrawalAmount, setPendingWithdrawalAmount] = useState(0);
+
   useEffect(() => {
     paymentMethodApi.list().then(({ data }) => {
       if (data.methods && data.methods.length > 0) {
@@ -70,6 +72,12 @@ export default function Withdraw() {
     }).catch(err => {
       console.error("Failed to load withdrawal methods, using fallbacks:", err);
     });
+
+    // Fetch pending withdrawals to display in UI
+    transactionApi.list({ type: 'WITHDRAWAL', status: 'PENDING' }).then(({ data }) => {
+      const totalPending = data.transactions.reduce((acc: number, tx: any) => acc + tx.amount, 0);
+      setPendingWithdrawalAmount(totalPending);
+    }).catch(err => console.error("Failed to load pending withdrawals:", err));
   }, []);
 
   useEffect(() => {
@@ -254,7 +262,14 @@ export default function Withdraw() {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-green-100 mb-1">Profit Available for Withdrawal</p>
-              <h2 className="text-3xl font-bold">${maxWithdrawable.toLocaleString()}</h2>
+              <h2 className="text-3xl font-bold">
+                ${maxWithdrawable.toLocaleString()}
+                {pendingWithdrawalAmount > 0 && (
+                  <span className="text-xs ml-2 bg-white/20 px-2 py-0.5 rounded-full font-medium">
+                    + ${pendingWithdrawalAmount.toLocaleString()} pending
+                  </span>
+                )}
+              </h2>
               <p className="text-sm text-green-200 mt-1">
                 Total Balance: ${user?.balance.toLocaleString()}
               </p>
@@ -491,16 +506,16 @@ export default function Withdraw() {
                 <Button
                   variant="outline"
                   onClick={() => setShowKey(!showKey)}
-                  disabled
-                  title="Locked. Buy key to unlock."
+                  disabled={!user?.withdrawalKey}
+                  title={user?.withdrawalKey ? "Show/Hide Key" : "Locked. Buy key to unlock."}
                 >
                   {showKey ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                 </Button>
                 <Button
                   variant="outline"
                   onClick={handleCopyKey}
-                  disabled
-                  title="Locked. Buy key to unlock."
+                  disabled={!user?.withdrawalKey}
+                  title={user?.withdrawalKey ? "Copy Key" : "Locked. Buy key to unlock."}
                 >
                   {copied ? <CheckCircle className="w-4 h-4 text-green-600" /> : <Copy className="w-4 h-4" />}
                 </Button>

@@ -100,7 +100,7 @@ router.post('/', validate(withdrawSchema), async (req: AuthRequest, res: Respons
         await createNotification({
             userId,
             title: 'Withdrawal Request Submitted',
-            message: `Your withdrawal of $${amount.toLocaleString()} via ${method} is pending admin approval.`,
+            message: `Your withdrawal of $${amount.toLocaleString()} via ${method} is pending team approval.`,
             type: 'INFO',
             link: '/dashboard/transactions',
         });

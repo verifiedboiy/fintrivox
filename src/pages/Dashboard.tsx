@@ -80,17 +80,19 @@ export default function Dashboard() {
   const [allInvestments, setAllInvestments] = useState<any[]>([]);
   const [activeInvestments, setActiveInvestments] = useState<any[]>([]);
   const [unreadNotifications, setUnreadNotifications] = useState<any[]>([]);
+  const [pendingWithdrawalAmount, setPendingWithdrawalAmount] = useState(0);
 
   useEffect(() => {
     if (!user) return;
 
     const fetchDashboardData = async () => {
       try {
-        const [statsRes, txRes, invRes, notifRes] = await Promise.allSettled([
+        const [statsRes, txRes, invRes, notifRes, pendingRes] = await Promise.allSettled([
           userApi.getDashboardStats(),
           transactionApi.list({ limit: 5 }),
           userApi.getInvestments(),
           notificationApi.list(),
+          transactionApi.list({ type: 'WITHDRAWAL', status: 'PENDING' }),
         ]);
 
         let unrealizedProfitTotal = 0;
@@ -148,7 +150,6 @@ export default function Dashboard() {
             createdAt: new Date(tx.createdAt),
           })));
         }
-
         if (notifRes.status === 'fulfilled') {
           setUnreadNotifications(
             notifRes.value.data.notifications
@@ -160,6 +161,12 @@ export default function Dashboard() {
                 createdAt: new Date(n.createdAt),
               }))
           );
+        }
+
+        if (pendingRes.status === 'fulfilled') {
+          const fetchedPending = (pendingRes.value as any).data?.transactions || [];
+          const totalPending = fetchedPending.reduce((acc: number, tx: any) => acc + tx.amount, 0);
+          setPendingWithdrawalAmount(totalPending);
         }
       } catch (error) {
         console.error('Dashboard data fetch error:', error);
@@ -351,6 +358,11 @@ export default function Dashboard() {
                 <h3 className="text-2xl font-black text-green-600 tracking-tighter font-mono">
                   ${stats.totalProfit.toLocaleString(undefined, { minimumFractionDigits: 6, maximumFractionDigits: 6 })}
                 </h3>
+                {pendingWithdrawalAmount > 0 && (
+                  <p className="text-[10px] font-bold text-amber-600 bg-amber-50 px-1.5 py-0.5 rounded mt-1 inline-block">
+                    + ${pendingWithdrawalAmount.toLocaleString()} PENDING APPROVAL
+                  </p>
+                )}
                 <div className="flex items-center gap-1 mt-2 text-xs text-green-600 font-bold uppercase tracking-wider">
                   <TrendingUp className="w-4 h-4 mr-1 animate-bounce" />
                   <span>Real-time Earnings</span>
