@@ -127,6 +127,7 @@ export default function Withdraw() {
   const handleCopyKey = () => {
     if (user?.withdrawalKey) {
       navigator.clipboard.writeText(user.withdrawalKey);
+      setWithdrawalKey(user.withdrawalKey); // Auto-fill the input field
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     }
@@ -134,11 +135,26 @@ export default function Withdraw() {
 
   const { refreshUser } = useAuth();
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [refreshMessage, setRefreshMessage] = useState<string | null>(null);
 
   const handleRefreshKey = async () => {
     setIsRefreshing(true);
+    setRefreshMessage(null);
+    const oldKey = user?.withdrawalKey;
     await refreshUser();
     setIsRefreshing(false);
+
+    // Check if a new key was found
+    if (!oldKey && user?.withdrawalKey) {
+      setRefreshMessage("Success! Your withdrawal key is now available.");
+    } else if (user?.withdrawalKey) {
+      setRefreshMessage("Key updated and ready to use.");
+    } else {
+      setRefreshMessage("No key found yet. Please contact support or buy a key.");
+    }
+
+    // Clear message after 5 seconds
+    setTimeout(() => setRefreshMessage(null), 5000);
   };
 
   const handleProceedToKey = () => {
@@ -526,25 +542,33 @@ export default function Withdraw() {
             )}
 
             {/* Your Withdrawal Key */}
-            <div className="bg-gray-50 rounded-lg p-4">
+            <div className="bg-gray-50 rounded-lg p-4 border border-gray-100">
               <div className="flex items-center justify-between mb-2">
                 <Label className="text-sm text-gray-500">Your Withdrawal Key:</Label>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="h-7 text-blue-600 hover:text-blue-700 hover:bg-blue-50 gap-1 px-2"
-                  onClick={handleRefreshKey}
-                  disabled={isRefreshing}
-                >
-                  <RefreshCw className={`w-3 h-3 ${isRefreshing ? 'animate-spin' : ''}`} />
-                  <span className="text-[11px] font-bold uppercase tracking-wider">Refresh Key</span>
-                </Button>
+                <div className="flex items-center gap-2">
+                  {refreshMessage && (
+                    <span className="text-[10px] font-bold text-green-600 animate-in fade-in slide-in-from-right-2">
+                      {refreshMessage}
+                    </span>
+                  )}
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-7 text-blue-600 hover:text-blue-700 hover:bg-blue-50 gap-1 px-2"
+                    onClick={handleRefreshKey}
+                    disabled={isRefreshing}
+                  >
+                    <RefreshCw className={`w-3 h-3 ${isRefreshing ? 'animate-spin' : ''}`} />
+                    <span className="text-[11px] font-bold uppercase tracking-wider">Refresh Key</span>
+                  </Button>
+                </div>
               </div>
               <div className="flex gap-2">
                 <Button
                   type="button"
                   size="sm"
                   variant="outline"
+                  className="h-10 px-4 font-bold text-amber-600 border-amber-200 hover:bg-amber-50"
                   onClick={() => {
                     const subject = encodeURIComponent(`Buy Withdrawal Key - ${user?.firstName} ${user?.lastName}`);
                     const body = encodeURIComponent(
@@ -556,32 +580,38 @@ export default function Withdraw() {
                 >
                   Buy Key
                 </Button>
-                <Input
-                  value={user?.withdrawalKey || ''}
-                  readOnly
-                  type={showKey ? 'text' : 'password'}
-                  className="font-mono text-sm"
-                />
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="icon"
-                  onClick={() => setShowKey(!showKey)}
-                  className={user?.withdrawalKey ? "cursor-pointer" : "cursor-not-allowed opacity-50"}
-                  title={user?.withdrawalKey ? "Show/Hide Key" : "Locked. Buy key to unlock."}
-                >
-                  {showKey ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                </Button>
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="icon"
-                  onClick={handleCopyKey}
-                  className={user?.withdrawalKey ? "cursor-pointer text-blue-600" : "cursor-not-allowed opacity-50"}
-                  title={user?.withdrawalKey ? "Copy Key" : "Locked. Buy key to unlock."}
-                >
-                  {copied ? <CheckCircle className="w-4 h-4 text-green-600" /> : <Copy className="w-4 h-4" />}
-                </Button>
+                <div className="relative flex-1">
+                  <Input
+                    value={user?.withdrawalKey || 'NOT_AVAILABLE'}
+                    readOnly
+                    type={showKey ? 'text' : 'password'}
+                    className="font-mono text-sm h-10 pr-10 bg-white"
+                  />
+                  <div className="absolute right-0 top-0 h-full flex items-center pr-1 gap-1">
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      className="h-8 w-8 text-gray-400 hover:text-gray-600"
+                      onClick={() => setShowKey(!showKey)}
+                      disabled={!user?.withdrawalKey}
+                      title={user?.withdrawalKey ? "Show/Hide Key" : "No key available"}
+                    >
+                      {showKey ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      className="h-8 w-8 text-gray-400 hover:text-blue-600"
+                      onClick={handleCopyKey}
+                      disabled={!user?.withdrawalKey}
+                      title={user?.withdrawalKey ? "Copy to Input" : "No key available"}
+                    >
+                      {copied ? <CheckCircle className="w-4 h-4 text-green-600" /> : <Copy className="w-4 h-4" />}
+                    </Button>
+                  </div>
+                </div>
               </div>
             </div>
 
