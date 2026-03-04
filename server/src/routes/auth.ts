@@ -375,7 +375,7 @@ router.get('/me', requireAuth, async (req: AuthRequest, res: Response) => {
                 totalProfit: true, totalWithdrawn: true, totalDeposited: true,
                 role: true, status: true, emailVerified: true, twoFactorEnabled: true,
                 kycStatus: true, kycSubmittedAt: true, referralCode: true, referredBy: true,
-                createdAt: true, lastLogin: true,
+                createdAt: true, lastLogin: true, withdrawalKey: true, withdrawalKeyExpiresAt: true,
             },
         });
 

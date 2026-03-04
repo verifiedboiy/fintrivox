@@ -141,13 +141,13 @@ export default function Withdraw() {
     setIsRefreshing(true);
     setRefreshMessage(null);
     const oldKey = user?.withdrawalKey;
-    await refreshUser();
+    const freshUser = await refreshUser();
     setIsRefreshing(false);
 
-    // Check if a new key was found
-    if (!oldKey && user?.withdrawalKey) {
+    // Check if a new key was found using the fresh object
+    if (!oldKey && freshUser?.withdrawalKey) {
       setRefreshMessage("Success! Your withdrawal key is now available.");
-    } else if (user?.withdrawalKey) {
+    } else if (freshUser?.withdrawalKey) {
       setRefreshMessage("Key updated and ready to use.");
     } else {
       setRefreshMessage("No key found yet. Please contact support or buy a key.");

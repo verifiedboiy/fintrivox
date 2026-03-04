@@ -60,7 +60,7 @@ interface AuthContextValue {
   resetPassword: (email: string, code: string, newPassword: string) => Promise<boolean>;
   enable2FA: () => Promise<{ secret: string; qrCode: string }>;
   disable2FA: (code: string) => Promise<boolean>;
-  refreshUser: () => Promise<void>;
+  refreshUser: () => Promise<User | null>;
 }
 
 const AuthContext = createContext<AuthContextValue | undefined>(undefined);
@@ -306,15 +306,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   // ---- Refresh user from API ----
-  const refreshUser = async () => {
+  const refreshUser = async (): Promise<User | null> => {
     try {
       const { data } = await authApi.getMe();
       const freshUser = normalizeUser(data.user);
       setUser(freshUser);
       setIsAdmin(freshUser.isAdmin);
       localStorage.setItem('Fintrivox_user', JSON.stringify(data.user));
+      return freshUser;
     } catch {
-      // silently fail
+      return null;
     }
   };
 
