@@ -58,7 +58,6 @@ export default function DashboardLayout() {
   ];
 
   const kycGatedPaths = [
-    '/dashboard/deposit',
     '/dashboard/withdraw',
     '/dashboard/invest',
     '/dashboard/markets',
@@ -160,15 +159,9 @@ export default function DashboardLayout() {
                   : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
                 }`}
             >
-              <Icon className={`w-5 h-5 ${isActive(item.href) ? 'text-white' : isLocked ? 'text-gray-300' : 'text-gray-400'}`} />
+              <Icon className={`w-5 h-5 ${isActive(item.href) ? 'text-white' : isLocked ? 'text-gray-400' : 'text-gray-400'}`} />
               <span className="flex-1">{item.name}</span>
-              {isLocked && (
-                <span className="text-[10px] bg-amber-100 text-amber-600 px-1.5 py-0.5 rounded-full flex items-center gap-1">
-                  <Lock className="w-2.5 h-2.5" />
-                  Locked
-                </span>
-              )}
-              {!isLocked && item.badge && (
+              {item.badge && (
                 <Badge
                   variant={item.badge.toString().toUpperCase() === 'VERIFIED' ? 'default' : 'secondary'}
                   className={`text-[10px] uppercase font-bold tracking-tighter px-2 py-0 ${item.badge.toString().toUpperCase() === 'VERIFIED'

@@ -162,24 +162,6 @@ export default function Deposit() {
     });
   }, []);
 
-  if (user?.kycStatus !== 'VERIFIED') {
-    return (
-      <div className="flex flex-col items-center justify-center min-h-[400px] text-center p-6 bg-white rounded-2xl border border-gray-100 shadow-sm max-w-2xl mx-auto mt-10">
-        <div className="w-20 h-20 bg-blue-50 rounded-full flex items-center justify-center mb-6">
-          <ShieldAlert className="w-10 h-10 text-blue-600" />
-        </div>
-        <h2 className="text-2xl font-bold text-gray-900 mb-3">Identity Verification Required</h2>
-        <p className="text-gray-500 mb-8 max-w-md">
-          To ensure the security of your funds and comply with financial regulations, you must verify your identity before you can make a deposit.
-        </p>
-        <Link to="/dashboard/kyc">
-          <Button className="h-12 px-8 text-base bg-blue-600 hover:bg-blue-700">
-            Verify Identity Now
-          </Button>
-        </Link>
-      </div>
-    );
-  }
 
   const selectedPaymentMethod = paymentMethods.find(pm => pm.id === selectedMethod);
 

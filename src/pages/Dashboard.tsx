@@ -293,24 +293,24 @@ export default function Dashboard() {
         </div>
         <div className="flex items-center gap-3">
           <Link
-            to={isDemo ? '#' : !isKycVerified ? '/dashboard/kyc' : "/dashboard/deposit"}
-            className={isDemo || !isKycVerified ? 'cursor-not-allowed' : ''}
+            to={isDemo ? '#' : "/dashboard/deposit"}
+            className={isDemo ? 'cursor-not-allowed' : ''}
           >
-            <Button className={`${isDemo ? 'bg-gray-400' : !isKycVerified ? 'bg-amber-600 hover:bg-amber-700 font-bold' : 'bg-green-600 hover:bg-green-700'}`}>
-              {isDemo || !isKycVerified ? <Lock className="w-4 h-4 mr-2" /> : <Plus className="w-4 h-4 mr-2" />}
-              {isDemo ? 'Deposit Locked' : !isKycVerified ? 'Verify to Deposit' : 'Deposit'}
+            <Button className={`${isDemo ? 'bg-gray-400' : 'bg-green-600 hover:bg-green-700'}`}>
+              {isDemo ? <Lock className="w-4 h-4 mr-2" /> : <Plus className="w-4 h-4 mr-2" />}
+              {isDemo ? 'Deposit Locked' : 'Deposit'}
             </Button>
           </Link>
           <Link
             to={isDemo ? '#' : !isKycVerified ? '/dashboard/kyc' : "/dashboard/withdraw"}
-            className={isDemo || !isKycVerified ? 'cursor-not-allowed' : ''}
+            className={isDemo ? 'cursor-not-allowed' : ''}
           >
             <Button
               variant="outline"
-              className={isDemo || !isKycVerified ? 'text-gray-400 border-gray-200' : ''}
+              className={isDemo ? 'text-gray-400 border-gray-200' : ''}
             >
-              {isDemo || !isKycVerified ? <ShieldAlert className="w-4 h-4 mr-2" /> : <Minus className="w-4 h-4 mr-2" />}
-              {isDemo ? 'Withdraw Locked' : !isKycVerified ? 'Verify to Withdraw' : 'Withdraw'}
+              {isDemo ? <ShieldAlert className="w-4 h-4 mr-2" /> : <Minus className="w-4 h-4 mr-2" />}
+              {isDemo ? 'Withdraw Locked' : 'Withdraw'}
             </Button>
           </Link>
         </div>
