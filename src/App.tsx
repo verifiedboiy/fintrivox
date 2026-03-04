@@ -27,6 +27,7 @@ const About = lazy(() => import('@/pages/About'));
 const Support = lazy(() => import('@/pages/Support'));
 const PrivacyPolicy = lazy(() => import('@/pages/PrivacyPolicy'));
 const Learn = lazy(() => import('@/pages/Learn'));
+const Disclaimer = lazy(() => import('@/pages/Disclaimer'));
 const NotFound = lazy(() => import('@/pages/NotFound'));
 
 // Protected User Pages
@@ -130,6 +131,7 @@ function AppRoutes() {
             <Route path="/support" element={<Support />} />
             <Route path="/privacy" element={<PrivacyPolicy />} />
             <Route path="/learn" element={<Learn />} />
+            <Route path="/disclaimer" element={<Disclaimer />} />
           </Route>
 
           {/* Auth Routes */}

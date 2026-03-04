@@ -256,7 +256,7 @@ export default function MainLayout() {
               <ul className="space-y-2 text-sm">
                 <li><Link to="/privacy" className="hover:text-white transition-colors">Privacy Policy</Link></li>
                 <li><Link to="/about" className="hover:text-white transition-colors">Terms of Service</Link></li>
-                <li><Link to="/about" className="hover:text-white transition-colors">Risk Disclosure</Link></li>
+                <li><Link to="/disclaimer" className="hover:text-white transition-colors">Risk Disclosure</Link></li>
                 <li><Link to="/about" className="hover:text-white transition-colors">Cookie Policy</Link></li>
               </ul>
             </div>
@@ -276,6 +276,14 @@ export default function MainLayout() {
                 Regulated Platform
               </span>
             </div>
+          </div>
+
+          {/* Financial Disclaimer */}
+          <div className="mt-8 pt-8 border-t border-gray-800/50">
+            <p className="text-[11px] leading-relaxed text-gray-500 text-center max-w-5xl mx-auto italic">
+              <span className="font-semibold text-gray-400 not-italic block mb-2 uppercase tracking-wider">Financial Disclaimer:</span>
+              Trading and investing in financial markets, including cryptocurrencies, stocks, and forex, involves a significant risk of loss and is not suitable for every investor. The valuation of financial instruments may fluctuate, and as a result, clients may lose more than their original investment. Fintrivox provides a platform for automated and manual trading strategies but does not offer financial, legal, or tax advice. All investment decisions are made at the user's sole discretion and risk. Fintrivox is not responsible for any losses incurred while using the platform. Past performance is not indicative of future results. Please consult with a professional financial advisor before making any investment decisions.
+            </p>
           </div>
         </div>
       </footer>

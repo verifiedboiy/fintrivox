@@ -362,10 +362,18 @@ export default function DashboardLayout() {
 
       {/* Sidebar - Desktop */}
       <aside className={`hidden lg:block fixed left-0 ${isDemo ? 'top-[calc(36px+4rem)]' : 'top-16'} bottom-0 w-64 bg-white border-r border-gray-200 overflow-y-auto z-30`}>
-        <div className="p-4">
-          {renderNavSection("Main", mainNavItems)}
-          {renderNavSection("Finance", financeNavItems)}
-          {renderNavSection("Account", accountNavItems)}
+        <div className="p-4 flex flex-col h-full">
+          <div className="flex-1">
+            {renderNavSection("Main", mainNavItems)}
+            {renderNavSection("Finance", financeNavItems)}
+            {renderNavSection("Account", accountNavItems)}
+          </div>
+
+          <div className="mt-auto pt-6 border-t border-gray-100">
+            <p className="text-[10px] text-gray-400 leading-tight">
+              <strong>Disclaimer:</strong> Investing involves risk. Past performance is not indicative of future results. Fintrivox does not provide financial advice.
+            </p>
+          </div>
         </div>
       </aside>
 
@@ -416,14 +424,19 @@ export default function DashboardLayout() {
               {renderNavSection("Finance", financeNavItems)}
               {renderNavSection("Account", accountNavItems)}
 
-              <Button
-                variant="outline"
-                className="w-full mt-4 text-red-600 border-red-200 hover:bg-red-50"
-                onClick={handleLogout}
-              >
-                <LogOut className="w-4 h-4 mr-2" />
-                Logout
-              </Button>
+              <div className="mt-6 pt-6 border-t border-gray-100">
+                <p className="text-[10px] text-gray-400 leading-tight mb-4">
+                  <strong>Disclaimer:</strong> Investing involves risk. Past performance is not indicative of future results. Fintrivox does not provide financial advice.
+                </p>
+                <Button
+                  variant="outline"
+                  className="w-full text-red-600 border-red-200 hover:bg-red-50"
+                  onClick={handleLogout}
+                >
+                  <LogOut className="w-4 h-4 mr-2" />
+                  Logout
+                </Button>
+              </div>
             </div>
           </aside>
         </>
