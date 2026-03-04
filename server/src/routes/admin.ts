@@ -520,13 +520,10 @@ router.post('/transactions/:id/approve', async (req: AuthRequest, res: Response)
                 link: '/dashboard',
             });
         } else if (transaction.type === 'WITHDRAWAL') {
-            // Balance was already frozen on creation, now deduct from total
+            // Profit was already frozen on creation, now just update total withdrawn
             await prisma.user.update({
                 where: { id: transaction.userId },
                 data: {
-                    balance: { decrement: transaction.amount },
-                    availableBalance: { decrement: 0 }, // Just to ensure it's not incorrectly incremented
-                    totalProfit: { decrement: transaction.amount },
                     totalWithdrawn: { increment: transaction.amount },
                 },
             });
@@ -580,12 +577,12 @@ router.post('/transactions/:id/deny', async (req: AuthRequest, res: Response) =>
             },
         });
 
-        // If withdrawal, refund frozen balance
+        // If withdrawal, refund frozen profit
         if (transaction.type === 'WITHDRAWAL') {
             await prisma.user.update({
                 where: { id: transaction.userId },
                 data: {
-                    availableBalance: { increment: transaction.amount },
+                    totalProfit: { increment: transaction.amount },
                 },
             });
         }

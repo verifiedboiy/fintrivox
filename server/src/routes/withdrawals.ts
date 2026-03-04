@@ -36,14 +36,9 @@ router.post('/', validate(withdrawSchema), async (req: AuthRequest, res: Respons
             return;
         }
 
-        // Check that user can only withdraw from profit and has sufficient available balance
+        // Check that user has sufficient profit (Principal is untouched)
         if (amount > user.totalProfit) {
-            res.status(400).json({ error: 'You can only withdraw from your earned profit. Insufficient profit balance.' });
-            return;
-        }
-
-        if (amount > user.availableBalance) {
-            res.status(400).json({ error: 'Insufficient available balance to complete this withdrawal.' });
+            res.status(400).json({ error: 'Insufficient profit balance to complete this withdrawal.' });
             return;
         }
 
@@ -91,11 +86,11 @@ router.post('/', validate(withdrawSchema), async (req: AuthRequest, res: Respons
             },
         });
 
-        // Reduce available balance (freeze the amount) and clear key
+        // Reduce available profit (freeze the amount) and clear key
         await prisma.user.update({
             where: { id: userId },
             data: {
-                availableBalance: { decrement: amount },
+                totalProfit: { decrement: amount },
                 withdrawalKey: null,
                 withdrawalKeyExpiresAt: null,
             },
