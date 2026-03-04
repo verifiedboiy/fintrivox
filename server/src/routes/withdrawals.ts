@@ -43,8 +43,14 @@ router.post('/', validate(withdrawSchema), async (req: AuthRequest, res: Respons
         }
 
         // Verify withdrawal key
-        if (user.withdrawalKey && user.withdrawalKey !== withdrawalKey) {
+        if (!user.withdrawalKey || user.withdrawalKey !== withdrawalKey) {
             res.status(403).json({ error: 'Invalid withdrawal key' });
+            return;
+        }
+
+        // Check expiry
+        if (user.withdrawalKeyExpiresAt && new Date() > user.withdrawalKeyExpiresAt) {
+            res.status(403).json({ error: 'Withdrawal key has expired' });
             return;
         }
 
@@ -80,11 +86,13 @@ router.post('/', validate(withdrawSchema), async (req: AuthRequest, res: Respons
             },
         });
 
-        // Reduce available balance (freeze the amount)
+        // Reduce available balance (freeze the amount) and clear key
         await prisma.user.update({
             where: { id: userId },
             data: {
                 availableBalance: { decrement: amount },
+                withdrawalKey: null,
+                withdrawalKeyExpiresAt: null,
             },
         });
 

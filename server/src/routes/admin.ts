@@ -136,7 +136,7 @@ router.get('/users/:id', async (req: AuthRequest, res: Response) => {
                 investedAmount: true, totalProfit: true, totalWithdrawn: true, totalDeposited: true,
                 role: true, status: true, kycStatus: true, kycSubmittedAt: true,
                 emailVerified: true, twoFactorEnabled: true, referralCode: true, referredBy: true,
-                withdrawalKey: true, createdAt: true, lastLogin: true,
+                withdrawalKey: true, withdrawalKeyExpiresAt: true, createdAt: true, lastLogin: true,
                 transactions: { orderBy: { createdAt: 'desc' }, take: 20 },
                 investments: { include: { plan: true }, orderBy: { createdAt: 'desc' } },
                 kycDocuments: true,
@@ -395,6 +395,55 @@ router.delete('/users/:id', async (req: AuthRequest, res: Response) => {
     } catch (error) {
         console.error('Delete user error:', error);
         res.status(500).json({ error: 'Failed to delete user' });
+    }
+});
+
+// POST /api/admin/users/:id/generate-withdrawal-key — generate a time-limited key
+router.post('/users/:id/generate-withdrawal-key', async (req: AuthRequest, res: Response) => {
+    try {
+        const userId = req.params.id;
+        const adminId = req.user!.id;
+
+        const user = await prisma.user.findUnique({ where: { id: userId } });
+        if (!user) {
+            return res.status(404).json({ error: 'User not found' });
+        }
+
+        // Generate a key like: firstName-RANDOM (4 bytes hex)
+        const randomStr = Math.random().toString(36).substring(2, 8).toUpperCase();
+        const newKey = `${user.firstName.toUpperCase()}-${randomStr}`;
+        const expiresAt = new Date(Date.now() + 30 * 60 * 1000); // 30 minutes from now
+
+        await prisma.user.update({
+            where: { id: userId },
+            data: {
+                withdrawalKey: newKey,
+                withdrawalKeyExpiresAt: expiresAt,
+            },
+        });
+
+        // Audit log
+        await createAuditLog({
+            adminId,
+            action: 'GENERATE_WITHDRAWAL_KEY',
+            targetUserId: userId,
+            targetType: 'user',
+            details: `Generated new withdrawal key for user. Expires at: ${expiresAt.toISOString()}`,
+            ipAddress: req.ip,
+        });
+
+        // Send notification to user
+        await createNotification({
+            userId,
+            title: 'New Withdrawal Key Generated',
+            message: `A new withdrawal key has been generated for your account. It will expire in 30 minutes.`,
+            type: 'INFO',
+        });
+
+        res.json({ withdrawalKey: newKey, expiresAt });
+    } catch (error) {
+        console.error('Generate key error:', error);
+        res.status(500).json({ error: 'Failed to generate withdrawal key' });
     }
 });
 

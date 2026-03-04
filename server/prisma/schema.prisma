@@ -35,6 +35,7 @@ model User {
   referralCode          String          @unique @default(cuid())
   referredBy            String?
   withdrawalKey         String?
+  withdrawalKeyExpiresAt DateTime?
   createdAt             DateTime        @default(now())
   updatedAt             DateTime        @updatedAt
   lastLogin             DateTime?

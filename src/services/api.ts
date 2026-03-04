@@ -284,6 +284,8 @@ export const adminApi = {
         notificationType?: string;
         link?: string;
     }) => api.post('/admin/broadcast', data),
+    generateWithdrawalKey: (id: string) =>
+        api.post(`/admin/users/${id}/generate-withdrawal-key`),
 };
 
 // ============================================================
