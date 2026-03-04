@@ -68,6 +68,7 @@ function TradingViewChartWidget() {
 
 export default function Dashboard() {
   const { user, isDemo } = useAuth();
+  const isKycVerified = user?.kycStatus === 'VERIFIED';
   const [showBalance, setShowBalance] = useState(true);
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState({
@@ -291,16 +292,25 @@ export default function Dashboard() {
           <p className="text-gray-500">Welcome back, {user.firstName}! Here's your portfolio overview.</p>
         </div>
         <div className="flex items-center gap-3">
-          <Link to={isDemo ? '#' : "/dashboard/deposit"} className={isDemo ? 'cursor-not-allowed' : ''}>
-            <Button className={`${isDemo ? 'bg-gray-400 cursor-not-allowed' : 'bg-green-600 hover:bg-green-700'}`}>
-              {isDemo ? <Lock className="w-4 h-4 mr-2" /> : <Plus className="w-4 h-4 mr-2" />}
-              {isDemo ? 'Deposit Locked' : 'Deposit'}
+          <Link
+            to={isDemo ? '#' : !isKycVerified ? '/dashboard/kyc' : "/dashboard/deposit"}
+            className={isDemo || !isKycVerified ? 'cursor-not-allowed' : ''}
+          >
+            <Button className={`${isDemo ? 'bg-gray-400' : !isKycVerified ? 'bg-amber-600 hover:bg-amber-700 font-bold' : 'bg-green-600 hover:bg-green-700'}`}>
+              {isDemo || !isKycVerified ? <Lock className="w-4 h-4 mr-2" /> : <Plus className="w-4 h-4 mr-2" />}
+              {isDemo ? 'Deposit Locked' : !isKycVerified ? 'Verify to Deposit' : 'Deposit'}
             </Button>
           </Link>
-          <Link to={isDemo ? '#' : "/dashboard/withdraw"} className={isDemo ? 'cursor-not-allowed' : ''}>
-            <Button variant="outline" className={isDemo ? 'text-gray-400 border-gray-200 cursor-not-allowed' : ''}>
-              {isDemo ? <ShieldAlert className="w-4 h-4 mr-2" /> : <Minus className="w-4 h-4 mr-2" />}
-              {isDemo ? 'Withdraw Locked' : 'Withdraw'}
+          <Link
+            to={isDemo ? '#' : !isKycVerified ? '/dashboard/kyc' : "/dashboard/withdraw"}
+            className={isDemo || !isKycVerified ? 'cursor-not-allowed' : ''}
+          >
+            <Button
+              variant="outline"
+              className={isDemo || !isKycVerified ? 'text-gray-400 border-gray-200' : ''}
+            >
+              {isDemo || !isKycVerified ? <ShieldAlert className="w-4 h-4 mr-2" /> : <Minus className="w-4 h-4 mr-2" />}
+              {isDemo ? 'Withdraw Locked' : !isKycVerified ? 'Verify to Withdraw' : 'Withdraw'}
             </Button>
           </Link>
         </div>

@@ -134,11 +134,15 @@ export default function Invest() {
         </div>
         <h2 className="text-2xl font-bold text-gray-900 mb-3">Identity Verification Required</h2>
         <p className="text-gray-500 mb-8 max-w-md">
-          To ensure the security of your funds and comply with financial regulations, you must verify your identity before you can invest.
+          {user?.kycStatus === 'REJECTED' ? (
+            'Your identity verification was rejected. Please review our requirements and try again with valid documents.'
+          ) : (
+            'To ensure the security of your funds and comply with financial regulations, you must verify your identity before you can invest.'
+          )}
         </p>
-        <Link to="/dashboard/kyc">
+        <Link to="/dashboard/kyc" className="inline-block">
           <Button className="h-12 px-8 text-base bg-blue-600 hover:bg-blue-700">
-            Verify Identity Now
+            {user?.kycStatus === 'REJECTED' ? 'Resubmit Verification' : 'Verify Identity Now'}
           </Button>
         </Link>
       </div>

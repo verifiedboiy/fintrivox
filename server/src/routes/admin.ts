@@ -260,9 +260,8 @@ router.patch('/users/:id', async (req: AuthRequest, res: Response) => {
         if (newTotalProfit !== undefined && newTotalProfit !== user.totalProfit) {
             const profitDiff = newTotalProfit - user.totalProfit;
             updateData.totalProfit = newTotalProfit;
-            // Also add the profit difference to balance and availableBalance
-            updateData.balance = (updateData.balance !== undefined ? updateData.balance : user.balance) + profitDiff;
-            updateData.availableBalance = (updateData.availableBalance !== undefined ? updateData.availableBalance : user.availableBalance) + profitDiff;
+            // IMPORTANT: Manual profit updates should NOT affect the user's principal balance.
+            // Profit is treated as a separate bucket.
             auditDetails.push(`Profit: $${user.totalProfit} → $${newTotalProfit}`);
 
             // Create PROFIT transaction

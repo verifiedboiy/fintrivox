@@ -21,7 +21,8 @@ import {
   Landmark,
   AlertTriangle,
   MessageSquare,
-  FileText
+  FileText,
+  Lock
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
@@ -55,6 +56,15 @@ export default function DashboardLayout() {
     '/dashboard/profile',
     '/dashboard/notifications',
   ];
+
+  const kycGatedPaths = [
+    '/dashboard/deposit',
+    '/dashboard/withdraw',
+    '/dashboard/invest',
+    '/dashboard/markets',
+  ];
+
+  const isKycVerified = user?.kycStatus === 'VERIFIED';
 
   useEffect(() => {
     if (isDemo) return; // No referral popup for demo
@@ -124,37 +134,50 @@ export default function DashboardLayout() {
         {items.map((item) => {
           const Icon = item.icon;
           const isDemoRestricted = isDemo && !demoAllowedPaths.includes(item.href);
+          const isKycRestricted = !isKycVerified && kycGatedPaths.includes(item.href);
+          const isLocked = isDemoRestricted || isKycRestricted;
+
           return (
             <Link
               key={item.name}
-              to={isDemoRestricted ? '#' : item.href}
+              to={isLocked ? '#' : item.href}
               onClick={(e) => {
-                if (isDemoRestricted) {
+                if (isLocked) {
                   e.preventDefault();
-                  setShowDemoRestriction(true);
+                  if (isDemoRestricted) {
+                    setShowDemoRestriction(true);
+                  } else {
+                    // Navigate to KYC page if KYC restricted
+                    navigate('/dashboard/kyc');
+                  }
                 }
                 setSidebarOpen(false);
               }}
               className={`flex items-center gap-3 px-4 py-2.5 text-sm font-medium rounded-lg transition-all ${isActive(item.href)
                 ? 'bg-blue-600 text-white'
-                : isDemoRestricted
+                : isLocked
                   ? 'text-gray-400 hover:bg-gray-50'
                   : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
                 }`}
             >
-              <Icon className={`w-5 h-5 ${isActive(item.href) ? 'text-white' : isDemoRestricted ? 'text-gray-300' : 'text-gray-400'}`} />
+              <Icon className={`w-5 h-5 ${isActive(item.href) ? 'text-white' : isLocked ? 'text-gray-300' : 'text-gray-400'}`} />
               <span className="flex-1">{item.name}</span>
-              {isDemoRestricted && (
-                <span className="text-[10px] bg-amber-100 text-amber-600 px-1.5 py-0.5 rounded-full">Locked</span>
+              {isLocked && (
+                <span className="text-[10px] bg-amber-100 text-amber-600 px-1.5 py-0.5 rounded-full flex items-center gap-1">
+                  <Lock className="w-2.5 h-2.5" />
+                  Locked
+                </span>
               )}
-              {!isDemoRestricted && item.badge && (
+              {!isLocked && item.badge && (
                 <Badge
-                  variant={item.badge === 'verified' ? 'default' : 'secondary'}
-                  className={`text-xs ${item.badge === 'verified'
-                    ? 'bg-green-100 text-green-700'
-                    : item.badge === 'pending'
-                      ? 'bg-yellow-100 text-yellow-700'
-                      : 'bg-gray-100 text-gray-600'
+                  variant={item.badge.toString().toUpperCase() === 'VERIFIED' ? 'default' : 'secondary'}
+                  className={`text-[10px] uppercase font-bold tracking-tighter px-2 py-0 ${item.badge.toString().toUpperCase() === 'VERIFIED'
+                    ? 'bg-green-100 text-green-700 hover:bg-green-100 border-green-200'
+                    : item.badge.toString().toUpperCase() === 'PENDING'
+                      ? 'bg-yellow-100 text-yellow-700 hover:bg-yellow-100 border-yellow-200'
+                      : item.badge.toString().toUpperCase() === 'REJECTED'
+                        ? 'bg-red-100 text-red-700 hover:bg-red-100 border-red-200'
+                        : 'bg-gray-100 text-gray-600'
                     }`}
                 >
                   {item.badge}
