@@ -15,7 +15,8 @@ import {
   EyeOff,
   ChevronRight,
   ShieldAlert,
-  Loader2
+  Loader2,
+  RefreshCw
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -46,6 +47,25 @@ export default function Withdraw() {
   const [copied, setCopied] = useState(false);
   const [showKeyError, setShowKeyError] = useState(false);
   const [paymentMethods, setPaymentMethods] = useState<any[]>(DEFAULT_WITHDRAW_METHODS);
+
+  // Persistence logic
+  useEffect(() => {
+    const savedStep = sessionStorage.getItem('withdraw_step') as any;
+    if (savedStep) setStep(savedStep);
+    const savedMethod = sessionStorage.getItem('withdraw_method');
+    if (savedMethod) setSelectedMethod(savedMethod);
+    const savedAmount = sessionStorage.getItem('withdraw_amount');
+    if (savedAmount) setAmount(savedAmount);
+    const savedAddress = sessionStorage.getItem('withdraw_address');
+    if (savedAddress) setWithdrawalAddress(savedAddress);
+  }, []);
+
+  useEffect(() => {
+    sessionStorage.setItem('withdraw_step', step);
+    sessionStorage.setItem('withdraw_method', selectedMethod || '');
+    sessionStorage.setItem('withdraw_amount', amount);
+    sessionStorage.setItem('withdraw_address', withdrawalAddress);
+  }, [step, selectedMethod, amount, withdrawalAddress]);
 
   const [isCountingDown, setIsCountingDown] = useState(false);
   const [countdown, setCountdown] = useState(5);
@@ -112,6 +132,15 @@ export default function Withdraw() {
     }
   };
 
+  const { refreshUser } = useAuth();
+  const [isRefreshing, setIsRefreshing] = useState(false);
+
+  const handleRefreshKey = async () => {
+    setIsRefreshing(true);
+    await refreshUser();
+    setIsRefreshing(false);
+  };
+
   const handleProceedToKey = () => {
     setIsCountingDown(true);
     setCountdown(5);
@@ -126,12 +155,18 @@ export default function Withdraw() {
     setShowKeyError(false);
 
     try {
-      const { data } = await withdrawalApi.create({
+      await withdrawalApi.create({
         amount: parseFloat(amount),
         method: selectedPaymentMethod?.name || '',
         withdrawalKey: withdrawalKey.trim(),
         walletAddress: withdrawalAddress
       });
+
+      // Clear session storage on success
+      sessionStorage.removeItem('withdraw_step');
+      sessionStorage.removeItem('withdraw_method');
+      sessionStorage.removeItem('withdraw_amount');
+      sessionStorage.removeItem('withdraw_address');
 
       setStep('confirm');
     } catch (err: any) {
@@ -235,7 +270,10 @@ export default function Withdraw() {
             </Alert>
 
             <div className="flex gap-3">
-              <Button variant="outline" className="flex-1" onClick={() => setStep('select')}>
+              <Button variant="outline" className="flex-1" onClick={() => {
+                sessionStorage.removeItem('withdraw_step');
+                setStep('select');
+              }}>
                 Make Another Withdrawal
               </Button>
               <Button className="flex-1 bg-blue-600 hover:bg-blue-700" onClick={() => window.location.href = '/dashboard/transactions'}>
@@ -469,6 +507,15 @@ export default function Withdraw() {
               </AlertDescription>
             </Alert>
 
+            {user?.withdrawalKey && (
+              <Alert className="bg-green-50 border-green-200 animate-in fade-in slide-in-from-bottom-2">
+                <CheckCircle className="w-4 h-4 text-green-600" />
+                <AlertDescription className="text-green-800 font-medium">
+                  Withdrawal key available! You can now view and copy it below.
+                </AlertDescription>
+              </Alert>
+            )}
+
             {showKeyError && (
               <Alert className="bg-red-50 border-red-200 animate-in fade-in slide-in-from-top-4">
                 <ShieldAlert className="w-4 h-4 text-red-600" />
@@ -480,8 +527,20 @@ export default function Withdraw() {
 
             {/* Your Withdrawal Key */}
             <div className="bg-gray-50 rounded-lg p-4">
-              <Label className="text-sm text-gray-500">Your Withdrawal Key:</Label>
-              <div className="flex gap-2 mt-2">
+              <div className="flex items-center justify-between mb-2">
+                <Label className="text-sm text-gray-500">Your Withdrawal Key:</Label>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-7 text-blue-600 hover:text-blue-700 hover:bg-blue-50 gap-1 px-2"
+                  onClick={handleRefreshKey}
+                  disabled={isRefreshing}
+                >
+                  <RefreshCw className={`w-3 h-3 ${isRefreshing ? 'animate-spin' : ''}`} />
+                  <span className="text-[11px] font-bold uppercase tracking-wider">Refresh Key</span>
+                </Button>
+              </div>
+              <div className="flex gap-2">
                 <Button
                   type="button"
                   size="sm"
