@@ -117,9 +117,7 @@ export default function AdminLayout() {
               <Menu className="w-5 h-5 text-slate-300" />
             </button>
             <Link to="/admin" className="flex items-center gap-2">
-              <div className="w-8 h-8 bg-gradient-to-br from-amber-500 to-orange-600 rounded-lg flex items-center justify-center">
-                <Crown className="w-5 h-5 text-white" />
-              </div>
+              <img src="/logo.png" alt="Logo" className="w-8 h-8 object-contain rounded-lg" />
               <div className="hidden sm:block">
                 <span className="text-lg font-bold text-white">Admin Panel</span>
                 <span className="text-xs text-slate-400 block -mt-1">Fintrivox</span>
@@ -228,10 +226,8 @@ export default function AdminLayout() {
       <aside className="hidden lg:block fixed left-0 top-16 bottom-0 w-64 bg-slate-900 border-r border-slate-800 overflow-y-auto">
         <div className="p-4">
           {/* Admin Badge */}
-          <div className="flex items-center gap-3 p-4 bg-gradient-to-r from-amber-500/20 to-orange-500/20 rounded-xl mb-6 border border-amber-500/30">
-            <div className="w-10 h-10 bg-gradient-to-br from-amber-500 to-orange-600 rounded-lg flex items-center justify-center">
-              <Crown className="w-5 h-5 text-white" />
-            </div>
+          <div className="flex items-center gap-3 p-4 bg-slate-800 rounded-xl mb-6 border border-slate-700">
+            <img src="/logo.png" alt="Logo" className="w-10 h-10 object-contain rounded-lg shadow-lg" />
             <div>
               <p className="font-medium text-white">{user?.firstName} {user?.lastName}</p>
               <p className="text-xs text-amber-400">Super Administrator</p>
@@ -304,9 +300,7 @@ export default function AdminLayout() {
             <div className="p-4">
               <div className="flex items-center justify-between mb-6">
                 <Link to="/admin" className="flex items-center gap-2">
-                  <div className="w-8 h-8 bg-gradient-to-br from-amber-500 to-orange-600 rounded-lg flex items-center justify-center">
-                    <Crown className="w-5 h-5 text-white" />
-                  </div>
+                  <img src="/logo.png" alt="Logo" className="w-8 h-8 object-contain rounded-lg" />
                   <div>
                     <span className="text-lg font-bold text-white block">Admin Panel</span>
                     <span className="text-xs text-slate-400 block -mt-1">Fintrivox</span>

@@ -126,9 +126,7 @@ export default function ForgotPassword() {
   const Logo = () => (
     <div className="text-center mb-8">
       <Link to="/" className="inline-flex items-center gap-2">
-        <div className="w-12 h-12 bg-gradient-to-br from-blue-600 to-indigo-700 rounded-xl flex items-center justify-center">
-          <Shield className="w-7 h-7 text-white" />
-        </div>
+        <img src="/logo.png" alt="Logo" className="w-12 h-12 object-contain rounded-xl" />
         <span className="text-2xl font-bold text-gray-900">Fintrivox</span>
       </Link>
     </div>

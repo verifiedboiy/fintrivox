@@ -56,9 +56,7 @@ export default function MainLayout() {
           <div className="flex items-center justify-between h-16 lg:h-20">
             {/* Logo */}
             <Link to="/" className="flex items-center gap-2">
-              <div className="w-10 h-10 bg-gradient-to-br from-blue-600 to-indigo-700 rounded-xl flex items-center justify-center">
-                <TrendingUp className="w-6 h-6 text-white" />
-              </div>
+              <img src="/logo.png" alt="Logo" className="w-10 h-10 object-contain rounded-xl" />
               <span className="text-xl font-bold text-gray-900">Fintrivox</span>
             </Link>
 
@@ -195,9 +193,7 @@ export default function MainLayout() {
             {/* Brand */}
             <div className="col-span-2 md:col-span-4 lg:col-span-1">
               <Link to="/" className="flex items-center gap-2 mb-4">
-                <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl flex items-center justify-center">
-                  <TrendingUp className="w-6 h-6 text-white" />
-                </div>
+                <img src="/logo.png" alt="Logo" className="w-10 h-10 object-contain rounded-xl" />
                 <span className="text-xl font-bold text-white">Fintrivox</span>
               </Link>
               <p className="text-sm text-gray-400 mb-4">

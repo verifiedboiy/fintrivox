@@ -284,9 +284,7 @@ export default function DashboardLayout() {
               <Menu className="w-5 h-5 text-gray-600" />
             </button>
             <Link to="/dashboard" className="flex items-center gap-2">
-              <div className="w-8 h-8 bg-gradient-to-br from-blue-600 to-indigo-700 rounded-lg flex items-center justify-center">
-                <TrendingUp className="w-5 h-5 text-white" />
-              </div>
+              <img src="/logo.png" alt="Logo" className="w-8 h-8 object-contain rounded-lg" />
               <span className="text-lg font-bold text-gray-900 hidden sm:block">Fintrivox</span>
             </Link>
           </div>
@@ -388,9 +386,7 @@ export default function DashboardLayout() {
             <div className="p-4">
               <div className="flex items-center justify-between mb-6">
                 <Link to="/dashboard" className="flex items-center gap-2">
-                  <div className="w-8 h-8 bg-gradient-to-br from-blue-600 to-indigo-700 rounded-lg flex items-center justify-center">
-                    <TrendingUp className="w-5 h-5 text-white" />
-                  </div>
+                  <img src="/logo.png" alt="Logo" className="w-8 h-8 object-contain rounded-lg" />
                   <span className="text-lg font-bold text-gray-900">Fintrivox</span>
                 </Link>
                 <button
