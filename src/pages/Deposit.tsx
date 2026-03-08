@@ -100,7 +100,7 @@ function StripePaymentForm({ amount, onSuccess, onCancel, selectedMethod, agreed
         <Button
           type="button"
           variant="outline"
-          className="flex-1"
+          className="flex-1 h-12 rounded-xl"
           onClick={onCancel}
           disabled={loading}
         >
@@ -108,7 +108,7 @@ function StripePaymentForm({ amount, onSuccess, onCancel, selectedMethod, agreed
         </Button>
         <Button
           type="submit"
-          className="flex-1 bg-blue-600 hover:bg-blue-700 font-bold"
+          className="flex-1 bg-blue-600 hover:bg-blue-700 font-bold h-12 rounded-xl shadow-lg shadow-blue-100"
           disabled={loading || !stripe || !agreedToPolicy}
         >
           {loading ? 'Processing...' : `Pay $${(amount).toLocaleString()}`}
@@ -391,18 +391,75 @@ export default function Deposit() {
                 <p className="text-sm text-gray-500 mt-1">
                   Min: ${selectedPaymentMethod?.minAmount} | Max: ${selectedPaymentMethod?.maxAmount?.toLocaleString()}
                 </p>
-                <div className="flex items-center gap-4 mt-2 text-sm text-blue-600">
+                <div className="flex flex-wrap items-center gap-4 mt-2 text-sm text-blue-600">
                   <span className="flex items-center gap-1">
                     <Clock className="w-4 h-4" />
                     Processing: {selectedPaymentMethod?.processingTime}
                   </span>
                   <span className="flex items-center gap-1">
-                    <Badge variant="outline" className="border-blue-200">
+                    <Badge variant="outline" className="border-blue-200 bg-blue-50/50">
                       Fee: {selectedPaymentMethod?.feeType === 'percentage' ? `${selectedPaymentMethod.fee}%` : `$${selectedPaymentMethod?.fee}`}
                     </Badge>
                   </span>
                 </div>
               </div>
+
+              {/* Summary and Agreement Section (Moved Up) */}
+              {amount && Number(amount) > 0 && (
+                <div className="space-y-4 pt-4 border-t border-gray-100">
+                  {/* Summary Card */}
+                  <div className="bg-gray-50/80 p-5 rounded-2xl border border-gray-100 space-y-3">
+                    <div className="flex justify-between items-center text-sm">
+                      <span className="text-gray-500">Deposit Amount</span>
+                      <span className="font-semibold text-gray-900">${parseFloat(amount).toLocaleString()}</span>
+                    </div>
+                    <div className="flex justify-between items-center text-sm">
+                      <span className="text-gray-500">Service Fee</span>
+                      <span className="font-semibold text-gray-950">
+                        {selectedPaymentMethod?.feeType === 'percentage'
+                          ? `$${(parseFloat(amount) * selectedPaymentMethod.fee / 100).toFixed(2)} (${selectedPaymentMethod.fee}%)`
+                          : `$${selectedPaymentMethod?.fee}`}
+                      </span>
+                    </div>
+                    <div className="pt-3 border-t border-gray-200 flex justify-between items-center">
+                      <span className="font-bold text-gray-700">Total to Receive</span>
+                      <div className="text-right">
+                        <span className="block font-black text-xl text-green-600">
+                          ${(parseFloat(amount) * (1 - (selectedPaymentMethod?.feeType === 'percentage' ? selectedPaymentMethod.fee / 100 : 0)) - (selectedPaymentMethod?.feeType === 'fixed' ? selectedPaymentMethod.fee : 0)).toLocaleString()}
+                        </span>
+                        <span className="text-[10px] text-gray-400">Funds added to wallet</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Refund Policy Checkbox */}
+                  <div className="bg-amber-50/80 p-5 rounded-2xl border border-amber-100 shadow-sm transition-all hover:bg-amber-50">
+                    <div className="flex items-start gap-4">
+                      <div className="pt-0.5">
+                        <Checkbox
+                          id="refund-policy"
+                          checked={agreedToPolicy}
+                          onCheckedChange={(checked) => setAgreedToPolicy(checked as boolean)}
+                          className="h-5 w-5 rounded-md border-amber-300 data-[state=checked]:bg-amber-600 data-[state=checked]:border-amber-600 shrink-0"
+                        />
+                      </div>
+                      <Label
+                        htmlFor="refund-policy"
+                        className="text-xs sm:text-sm leading-relaxed text-amber-900 cursor-pointer select-none space-y-1"
+                      >
+                        <span className="font-extrabold underline block text-xs tracking-wider text-amber-950 uppercase">
+                          Strict No Refund Policy
+                        </span>
+                        <p className="text-amber-800/90 font-medium">
+                          I understand and agree that this deposit is <span className="font-bold text-amber-950 italic">non-refundable</span>.
+                          I commit to contacting <strong>Fintrivox Support</strong> first for any issues
+                          before initiating any dispute with my bank.
+                        </p>
+                      </Label>
+                    </div>
+                  </div>
+                </div>
+              )}
 
               {/* Crypto Payment Instructions */}
               {selectedPaymentMethod?.type === 'crypto' && (
@@ -556,56 +613,9 @@ export default function Deposit() {
                 </div>
               )}
 
-              {/* Summary */}
-              {amount && (
-                <div className="border-t pt-4">
-                  <div className="flex justify-between mb-2">
-                    <span className="text-gray-500">Deposit Amount</span>
-                    <span className="font-medium">${parseFloat(amount).toLocaleString()}</span>
-                  </div>
-                  <div className="flex justify-between mb-2">
-                    <span className="text-gray-500">Fee</span>
-                    <span className="font-medium">
-                      {selectedPaymentMethod?.feeType === 'percentage'
-                        ? `$${(parseFloat(amount) * selectedPaymentMethod.fee / 100).toFixed(2)} (${selectedPaymentMethod.fee}%)`
-                        : `$${selectedPaymentMethod?.fee}`}
-                    </span>
-                  </div>
-                  <div className="flex justify-between pt-2 border-t">
-                    <span className="font-medium">Total to Receive</span>
-                    <span className="font-bold text-green-600 text-lg">
-                      ${(parseFloat(amount) * (1 - (selectedPaymentMethod?.feeType === 'percentage' ? selectedPaymentMethod.fee / 100 : 0)) - (selectedPaymentMethod?.feeType === 'fixed' ? selectedPaymentMethod.fee : 0)).toLocaleString()}
-                    </span>
-                  </div>
-                </div>
-              )}
-
-              {/* Refund Policy Checkbox */}
-              {amount && (
-                <div className="bg-amber-50/50 p-4 rounded-xl border border-amber-100/50 space-y-3">
-                  <div className="flex items-start gap-3">
-                    <Checkbox
-                      id="refund-policy"
-                      checked={agreedToPolicy}
-                      onCheckedChange={(checked) => setAgreedToPolicy(checked as boolean)}
-                      className="mt-1"
-                    />
-                    <Label
-                      htmlFor="refund-policy"
-                      className="text-xs leading-relaxed text-amber-900 cursor-pointer select-none"
-                    >
-                      <span className="font-bold underline block mb-1">STRICT NO REFUND POLICY</span>
-                      I understand and agree that this deposit is <span className="font-bold">non-refundable</span>.
-                      I agree that if I have any problem with my payment, I will contact <strong>Fintrivox Support</strong> first
-                      before contacting my card issuer or bank.
-                    </Label>
-                  </div>
-                </div>
-              )}
-
               {selectedPaymentMethod?.type !== "card" && (
                 <Button
-                  className="w-full bg-blue-600 hover:bg-blue-700 h-12"
+                  className="w-full bg-blue-600 hover:bg-blue-700 h-14 text-lg font-bold shadow-lg shadow-blue-200 rounded-xl transition-all active:scale-[0.98]"
                   onClick={handleSubmit}
                   disabled={
                     !amount ||
@@ -613,6 +623,7 @@ export default function Deposit() {
                     !agreedToPolicy
                   }
                 >
+                  <ShieldAlert className="w-5 h-5 mr-2" />
                   Confirm Deposit
                 </Button>
               )}
