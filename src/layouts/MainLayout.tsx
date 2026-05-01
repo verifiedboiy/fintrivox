@@ -242,9 +242,8 @@ export default function MainLayout() {
                   },
                   {
                     name: 'X',
-                    href: '/',
-                    icon: XIcon,
-                    label: 'Coming soon'
+                    href: 'https://x.com/fintrivox?s=21',
+                    icon: XIcon
                   }
                 ].map((social) => (
                   <a
