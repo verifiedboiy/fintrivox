@@ -298,6 +298,7 @@ export default function Register() {
                 <ArrowRight className="w-4 h-4 ml-2" />
               </Button>
 
+{/*
               <div className="mt-6 relative">
                 <div className="absolute inset-0 flex items-center">
                   <div className="w-full border-t border-gray-200" />
@@ -336,6 +337,7 @@ export default function Register() {
                   Sign up with Google
                 </Button>
               </div>
+              */}
             </div>
           ) : (
             <form onSubmit={handleSubmit} className="space-y-4">

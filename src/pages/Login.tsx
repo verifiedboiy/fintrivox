@@ -323,6 +323,7 @@ export default function Login() {
             </Button>
           </form>
 
+{/*
           <div className="mt-6 relative">
             <div className="absolute inset-0 flex items-center">
               <div className="w-full border-t border-gray-200" />
@@ -361,6 +362,7 @@ export default function Login() {
               Continue with Google
             </Button>
           </div>
+          */}
 
           <div className="mt-6">
             <div className="relative">
