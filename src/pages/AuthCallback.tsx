@@ -15,23 +15,32 @@ export default function AuthCallback() {
       const accessToken = params.get('accessToken');
       const refreshToken = params.get('refreshToken');
 
+      console.log('Callback received tokens:', !!accessToken, !!refreshToken);
+
       if (accessToken && refreshToken) {
         try {
-          // Temporarily store tokens to fetch user data
+          // 1. Store tokens first
           localStorage.setItem('Fintrivox_token', accessToken);
+          localStorage.setItem('Fintrivox_refresh_token', refreshToken);
           
+          // 2. Fetch user data with the new token
           const { data } = await authApi.getMe();
+          console.log('User data fetched successfully');
           
+          // 3. Finalize login state
           completeLogin({
             user: data.user,
             accessToken,
             refreshToken
           });
 
-          navigate('/dashboard');
-        } catch (error) {
-          console.error('Auth callback error:', error);
-          navigate('/login?error=callback_failed');
+          // 4. Redirect
+          setTimeout(() => {
+            navigate('/dashboard', { replace: true });
+          }, 100);
+        } catch (error: any) {
+          console.error('Auth callback error details:', error.response?.data || error.message);
+          navigate(`/login?error=callback_failed&details=${encodeURIComponent(error.message)}`);
         }
       } else {
         navigate('/login?error=missing_tokens');
