@@ -5,6 +5,7 @@ databases:
   # PostgreSQL Database
   # ----------------------------------------
   - name: fintrivox-db
+    plan: free
     databaseName: fintrivox
     user: fintrivox
 
@@ -14,6 +15,7 @@ databases:
 services:
   - type: web
     name: fintrivox-api
+    plan: free
     env: node
     rootDir: server
     buildCommand: npm install --include=dev && npx prisma generate && npx prisma db push --schema=prisma/schema.prisma --accept-data-loss && npm run db:seed && npm run build
@@ -29,6 +31,10 @@ services:
         generateValue: true
       - key: NODE_ENV
         value: production
+      - key: JWT_EXPIRES_IN
+        value: "1h"
+      - key: JWT_REFRESH_EXPIRES_IN
+        value: "7d"
       - key: SMTP_HOST
         value: mail.privateemail.com
       - key: SMTP_PORT
@@ -37,6 +43,8 @@ services:
         value: verify@fintrivox.com
       - key: SMTP_PASS
         value: "Miracle1@"
+      - key: FRONTEND_URL
+        value: https://fintrivox-frontend.onrender.com # Predicted URL - update in Render dashboard if different
       # We intentionally omit FRONTEND_URL to avoid circular dependency.
       # You should set FRONTEND_URL in the Render dashboard for fintrivox-api
       # after fintrivox-frontend is deployed to fix CORS.
@@ -46,6 +54,7 @@ services:
   # ----------------------------------------
   - type: web
     name: fintrivox-frontend
+    plan: free
     env: static
     rootDir: .
     buildCommand: npm install && npm run build
