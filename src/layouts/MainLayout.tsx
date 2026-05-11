@@ -252,15 +252,10 @@ export default function MainLayout() {
                     target={social.href.startsWith('http') ? "_blank" : undefined}
                     rel={social.href.startsWith('http') ? "noopener noreferrer" : undefined}
                     className="w-8 h-8 rounded-lg bg-gray-800 flex items-center justify-center hover:bg-gray-700 transition-colors group relative"
-                    title={social.label || social.name}
+                    title={social.name}
                   >
                     <span className="sr-only">{social.name}</span>
                     <social.icon className="w-4 h-4 text-gray-400 group-hover:text-white transition-colors" />
-                    {social.label && (
-                      <span className="absolute -top-8 left-1/2 -translate-x-1/2 bg-gray-800 text-white text-[10px] py-1 px-2 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none">
-                        {social.label}
-                      </span>
-                    )}
                   </a>
                 ))}
               </div>
