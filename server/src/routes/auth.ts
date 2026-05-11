@@ -9,6 +9,13 @@ import { validate } from '../middleware/validate.js';
 import { requireAuth, type AuthRequest } from '../middleware/auth.js';
 import { createNotification } from '../services/notification.service.js';
 import { sendVerificationEmail, sendPasswordResetEmail, generate6DigitCode } from '../services/email.service.js';
+import { OAuth2Client } from 'google-auth-library';
+
+const client = new OAuth2Client(
+    env.GOOGLE_CLIENT_ID,
+    env.GOOGLE_CLIENT_SECRET,
+    env.GOOGLE_REDIRECT_URI
+);
 
 const router = Router();
 
@@ -614,6 +621,122 @@ router.post('/reset-password', async (req, res: Response) => {
         res.json({ success: true });
     } catch (error) {
         res.status(500).json({ error: 'Failed' });
+    }
+});
+
+// GET /api/auth/google
+router.get('/google', (req, res) => {
+    const url = client.generateAuthUrl({
+        access_type: 'offline',
+        scope: ['https://www.googleapis.com/auth/userinfo.profile', 'https://www.googleapis.com/auth/userinfo.email'],
+    });
+    res.redirect(url);
+});
+
+// GET /api/auth/google/callback
+router.get('/google/callback', async (req, res) => {
+    try {
+        const { code } = req.query;
+        if (!code) {
+            res.redirect(`${env.FRONTEND_URL}/login?error=no_code`);
+            return;
+        }
+
+        const { tokens: googleTokens } = await client.getToken(code as string);
+        client.setCredentials(googleTokens);
+
+        const ticket = await client.verifyIdToken({
+            idToken: googleTokens.id_token!,
+            audience: env.GOOGLE_CLIENT_ID,
+        });
+
+        const payload = ticket.getPayload();
+        if (!payload) {
+            res.redirect(`${env.FRONTEND_URL}/login?error=invalid_payload`);
+            return;
+        }
+
+        const { email, sub: googleId, given_name: firstName, family_name: lastName } = payload;
+        const normalizedEmail = email!.toLowerCase();
+
+        // Find or create user
+        let user = await prisma.user.findFirst({
+            where: {
+                OR: [
+                    { googleId },
+                    { email: normalizedEmail }
+                ]
+            }
+        });
+
+        if (!user) {
+            // Register new user
+            user = await prisma.user.create({
+                data: {
+                    email: normalizedEmail,
+                    googleId,
+                    firstName: firstName || 'Google',
+                    lastName: lastName || 'User',
+                    emailVerified: true, // Google emails are verified
+                }
+            });
+
+            await createNotification({
+                userId: user.id,
+                title: 'Welcome to Fintrivox!',
+                message: 'Your account has been created successfully via Google.',
+                type: 'SUCCESS',
+            });
+        } else if (!user.googleId) {
+            // Link existing account
+            user = await prisma.user.update({
+                where: { id: user.id },
+                data: { googleId, emailVerified: true }
+            });
+        }
+
+        if (user.status === 'SUSPENDED') {
+            res.redirect(`${env.FRONTEND_URL}/login?error=suspended`);
+            return;
+        }
+
+        // Generate our own tokens
+        const tokens = generateTokens({ id: user.id, email: user.email, role: user.role });
+
+        // Save refresh token
+        await prisma.refreshToken.create({
+            data: {
+                token: tokens.refreshToken,
+                userId: user.id,
+                device: req.headers['user-agent'],
+                expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+            },
+        });
+
+        // Update location (fire and forget)
+        const rawIp = (req.headers['x-forwarded-for'] as string)?.split(',')[0]?.trim() || req.ip || '';
+        getGeoData(rawIp).then(geo => {
+            prisma.user.update({
+                where: { id: user.id },
+                data: {
+                    lastLogin: new Date(),
+                    lastLoginIp: rawIp,
+                    lastLoginCity: geo.city,
+                    lastLoginCountry: geo.country,
+                    lastLoginTimezone: geo.timezone,
+                    lastLoginDevice: parseDevice(req.headers['user-agent']),
+                },
+            }).catch(console.error);
+        }).catch(console.error);
+
+        // Redirect to frontend with tokens
+        // In a production app, you might use secure cookies or a temporary session code
+        // For simplicity, we'll use query params that the frontend will catch and save
+        res.redirect(`${env.FRONTEND_URL}/auth/callback?accessToken=${tokens.accessToken}&refreshToken=${tokens.refreshToken}`);
+
+    } catch (error) {
+        console.error('Google Auth Error:', error);
+        res.redirect(`${env.FRONTEND_URL}/login?error=google_auth_failed`);
     }
 });
 

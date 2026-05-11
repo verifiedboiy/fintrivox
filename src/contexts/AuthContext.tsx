@@ -61,6 +61,7 @@ interface AuthContextValue {
   enable2FA: () => Promise<{ secret: string; qrCode: string }>;
   disable2FA: (code: string) => Promise<boolean>;
   refreshUser: () => Promise<User | null>;
+  completeLogin: (data: { user: any; accessToken: string; refreshToken: string }) => void;
 }
 
 const AuthContext = createContext<AuthContextValue | undefined>(undefined);
@@ -383,6 +384,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     disable2FA,
     extendSession,
     refreshUser,
+    completeLogin,
     showTimeoutWarning,
     remainingTime,
   };

@@ -10,4 +10,7 @@ export const env = {
     JWT_EXPIRES_IN: process.env.JWT_EXPIRES_IN || '15m',
     JWT_REFRESH_EXPIRES_IN: process.env.JWT_REFRESH_EXPIRES_IN || '7d',
     FRONTEND_URL: process.env.FRONTEND_URL || 'http://172.20.10.8:5173',
+    GOOGLE_CLIENT_ID: process.env.GOOGLE_CLIENT_ID || '',
+    GOOGLE_CLIENT_SECRET: process.env.GOOGLE_CLIENT_SECRET || '',
+    GOOGLE_REDIRECT_URI: process.env.GOOGLE_REDIRECT_URI || '',
 };

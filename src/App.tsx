@@ -23,6 +23,7 @@ const Register = lazy(() => import('@/pages/Register'));
 const ForgotPassword = lazy(() => import('@/pages/ForgotPassword'));
 const ResetPassword = lazy(() => import('@/pages/ResetPassword'));
 const VerifyEmail = lazy(() => import('@/pages/VerifyEmail'));
+const AuthCallback = lazy(() => import('@/pages/AuthCallback'));
 const About = lazy(() => import('@/pages/About'));
 const Support = lazy(() => import('@/pages/Support'));
 const PrivacyPolicy = lazy(() => import('@/pages/PrivacyPolicy'));
@@ -140,6 +141,7 @@ function AppRoutes() {
           <Route path="/forgot-password" element={<PublicRoute><ForgotPassword /></PublicRoute>} />
           <Route path="/reset-password" element={<PublicRoute><ResetPassword /></PublicRoute>} />
           <Route path="/verify-email" element={<PublicRoute><VerifyEmail /></PublicRoute>} />
+          <Route path="/auth/callback" element={<AuthCallback />} />
 
           {/* User Dashboard Routes */}
           <Route path="/dashboard" element={
