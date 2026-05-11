@@ -290,7 +290,10 @@ export default function Register() {
                   </Select>
                 </div>
               </div>
-
+              <Button
+                onClick={handleNext}
+                className="w-full bg-blue-600 hover:bg-blue-700 h-12"
+              >
                 Continue
                 <ArrowRight className="w-4 h-4 ml-2" />
               </Button>
